@@ -1,0 +1,1 @@
+export const BASE_URL_MOOD = 'http://192.168.50.215:8000/predict_mood';

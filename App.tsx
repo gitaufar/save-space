@@ -50,7 +50,14 @@
 import './global.css';
 import { Text, View } from 'react-native';
 import HomeScreen from './src/presentation/screens/main/HomeScreen';
+import Button from './src/presentation/components/common/Button';
 
 export default function App() {
-  return <HomeScreen />;
+  return (
+    <Button 
+      padding="px-6 py-3"
+      text="Ambil Foto dari Kamera" 
+      icon={<Text>📷</Text>}
+    />
+  )
 }

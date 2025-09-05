@@ -9,10 +9,17 @@ type ButtonProps = {
     margin?: string;
     rounded?: string;
 }
-export default function Button({text, icon, padding = "px-6 py-3", fontSize = "text-[16px]", margin = "m-6", rounded = "rounded-[8px]"}: ButtonProps) {
+export const Button = (
+  {text, 
+    icon, 
+    padding = "px-6 py-3", 
+    fontSize = "text-[16px]", 
+    margin = "m-6", 
+    rounded = "rounded-[8px]"
+  }: ButtonProps) => {
   if (!text){
     throw new Error("Text tidak boleh kosong");
-  }
+  };
 
   return (
     <TouchableOpacity className={`bg-[#00BFA6] ${rounded} self-start ${padding} ${margin}`}>
@@ -21,5 +28,5 @@ export default function Button({text, icon, padding = "px-6 py-3", fontSize = "t
             <Text className={`text-[#FAFAFA] text-center font-medium ${fontSize}`}>{text}</Text>
         </View>
     </TouchableOpacity>
-  )
-}
+  );
+};

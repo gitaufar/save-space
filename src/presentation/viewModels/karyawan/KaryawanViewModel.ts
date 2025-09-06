@@ -1,7 +1,7 @@
 // presentation/viewmodels/MoodViewModel.ts
 import { useState } from 'react';
 import { Mood } from '../../../domain/entities/Mood';
-import { getMood } from '../../../domain/usecases/GetMoodUseCase';
+import { getMood } from '../../../domain/usecases/ai/GetMoodUseCase';
 
 export function useMoodViewModel() {
   const [inputText, setInputText] = useState('');

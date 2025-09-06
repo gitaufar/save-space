@@ -48,9 +48,22 @@
 // export default App;
 
 import './global.css';
-import { Text, View } from 'react-native';
+import { NavigationContainer, DefaultTheme } from "@react-navigation/native";
 import HomeScreen from './src/presentation/screens/main/HomeScreen';
 
+const MyTheme = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    background: "white",
+  },
+};
+
 export default function App() {
-  return <HomeScreen />;
+  return (
+    <NavigationContainer theme={MyTheme}>
+      <HomeScreen />
+    </NavigationContainer>
+  );
 }
+

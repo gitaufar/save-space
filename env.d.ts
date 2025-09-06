@@ -3,6 +3,7 @@
 declare module '@env' {
   export const SUPABASE_URL: string;
   export const SUPABASE_KEY: string;
+  export const API_KEY: string;
 }
 
 declare module 'react-native-vector-icons/MaterialIcons' {

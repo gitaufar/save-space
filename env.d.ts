@@ -20,3 +20,11 @@ declare module 'react-native-vector-icons/Feather' {
   import { Icon } from 'react-native-vector-icons/Icon';
   export default Icon;
 }
+
+declare module "*.svg" {
+  import * as React from "react";
+  import { SvgProps } from "react-native-svg";
+  const content: React.FC<SvgProps>;
+  export default content;
+}
+

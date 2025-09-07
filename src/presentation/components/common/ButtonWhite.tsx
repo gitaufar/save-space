@@ -12,7 +12,7 @@ type ButtonProps = {
   onPress: () => void;
 };
 
-export const Button= ({
+export const ButtonWhite = ({
   text,
   icon,
   padding = 'px-6 py-3',
@@ -30,7 +30,7 @@ export const Button= ({
     <Pressable
       onPress={!loading ? onPress : undefined}
       disabled={loading}
-      className={`bg-[#00BFA6] ${rounded} w-full self-start ${padding} ${margin} ${
+      className={`bg-[#FAFAFA] ${rounded} w-full self-start ${padding} ${margin} ${
         loading ? 'opacity-50' : 'active:opacity-70'
       }`}
     >
@@ -40,7 +40,7 @@ export const Button= ({
         ) : (
           <>
             {icon && <View className="mr-2">{icon}</View>}
-            <Text className={`text-[#FAFAFA] text-center font-medium ${fontSize}`}>
+            <Text className={`text-[#00BFA6] text-center font-medium ${fontSize}`}>
               {text}
             </Text>
           </>

@@ -1,7 +1,7 @@
 import React from 'react';
 import { View } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import Header from '../../components/auth/Header';
+import  Header from '../../components/auth/Header';
 import Logo from '../../../assets/register/register_illustration.svg';
 import RoleCard from '../../components/auth/RoleCard';
 import Icon from 'react-native-vector-icons/MaterialIcons';

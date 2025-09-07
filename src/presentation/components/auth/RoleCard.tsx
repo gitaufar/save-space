@@ -1,5 +1,5 @@
 import React, { ReactNode } from 'react';
-import { Text, View } from 'react-native';
+import { Pressable, Text, View, ActivityIndicator } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
 type RoleCardProps = {
@@ -7,6 +7,8 @@ type RoleCardProps = {
   title: string;
   desc: string;
   icon: ReactNode;
+  onPress?: () => void;
+  loading?: boolean;
 };
 
 export default function RoleCard({
@@ -14,15 +16,29 @@ export default function RoleCard({
   title,
   desc,
   icon,
+  onPress,
+  loading = false,
 }: RoleCardProps) {
   return (
-    <View className="flex flex-row items-center bg-white p-6 rounded-xl gap-6">
-      <View className={`${bgIconColor} rounded-full p-4`}>{icon}</View>
-      <View className='flex flex-col gap-2 max-w-[170px]'>
-        <Text className='text-lg text-black_common font-semibold'>{title}</Text>
-        <Text className='text-sm text-light_grey font-normal'>{desc}</Text>
+    <Pressable
+      disabled={loading}
+      className={`flex flex-row items-center bg-white p-6 rounded-xl gap-6 ${
+        loading ? 'opacity-50' : ''
+      }`}
+      onPress={onPress}
+    >
+      <View className={`${bgIconColor} rounded-full p-4`}>
+        {loading ? (
+          <ActivityIndicator size="small" color="#fff" /> // ✅ loader ganti icon
+        ) : (
+          icon
+        )}
       </View>
-      <Icon name="chevron-right" size={24} color="grey" />
-    </View>
+      <View className="flex flex-col gap-2 max-w-[170px]">
+        <Text className="text-lg text-black_common font-semibold">{title}</Text>
+        <Text className="text-sm text-light_grey font-normal">{desc}</Text>
+      </View>
+      {!loading && <Icon name="chevron-right" size={24} color="grey" />}
+    </Pressable>
   );
 }

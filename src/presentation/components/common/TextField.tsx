@@ -19,7 +19,7 @@ export const TextField = ({
   icon,
 }: TextFieldProps) => {
   return (
-    <View className="mb-4">
+    <View>
       {label && (
         <Text className="mb-2 text-gray-700 font-medium">{label}</Text>
       )}

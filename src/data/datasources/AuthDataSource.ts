@@ -1,22 +1,24 @@
-import { supabase } from "../../core/utils/supabaseClient";
+import { supabase } from "../../core/utils/SupabaseClient";
 
 export class AuthDataSource {
   async signUp(email: string, password: string) {
-    const { data, error } = await supabase.auth.signUp({
+    // v1: signUp mengembalikan { user, session, error }
+    const { user, session, error } = await supabase.auth.signUp({
       email,
       password,
     });
     if (error) throw error;
-    return data;
+    return { user, session };
   }
 
   async signIn(email: string, password: string) {
-    const { data, error } = await supabase.auth.signInWithPassword({
+    // v1: signIn mengembalikan { user, session, error }
+    const { user, session, error } = await supabase.auth.signIn({
       email,
       password,
     });
     if (error) throw error;
-    return data;
+    return { user, session };
   }
 
   async signOut() {
@@ -25,8 +27,7 @@ export class AuthDataSource {
   }
 
   async getCurrentUser() {
-    const { data, error } = await supabase.auth.getUser();
-    if (error) throw error;
-    return data.user;
+    const user = supabase.auth.user(); // v1: langsung ambil user saat ini
+    return user;
   }
 }

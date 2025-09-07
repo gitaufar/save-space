@@ -1,74 +1,82 @@
-import { useState, useCallback } from "react";
-import { AuthRepository } from "../../../domain/repositories/AuthRepository";
-import { User } from "../../../domain/entities/User";
+import { useCallback, useState } from 'react';
+import { FetchCurrentUserUseCase } from '../../../domain/usecases/auth/FetchCurrentUserUseCase';
+import { LoginUseCase } from '../../../domain/usecases/auth/LoginUseCase';
+import { LogoutUseCase } from '../../../domain/usecases/auth/LogoutUseCase';
+import { RegisterUseCase } from '../../../domain/usecases/auth/RegisterUseCase';
+import { User } from '../../../domain/entities/User';
 
-export function useAuthViewModel(authRepository: AuthRepository) {
-  // State untuk UI
+type AuthUseCases = {
+  signUpUseCase: RegisterUseCase;
+  signInUseCase: LoginUseCase;
+  signOutUseCase: LogoutUseCase;
+  fetchCurrentUserUseCase: FetchCurrentUserUseCase;
+};
+
+export function useAuthViewModel({
+  signUpUseCase,
+  signInUseCase,
+  signOutUseCase,
+  fetchCurrentUserUseCase,
+}: AuthUseCases) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Sign Up
-  const signUp = useCallback(async (email: string, password: string) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const newUser = await authRepository.signUp(email, password);
-      setUser(newUser);
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  }, [authRepository]);
+  const signUp = useCallback(
+    async (email: string, password: string) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const newUser = await signUpUseCase.execute(email, password);
+        setUser(newUser);
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [signUpUseCase],
+  );
 
-  // Sign In
-  const signIn = useCallback(async (email: string, password: string) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const loggedInUser = await authRepository.signIn(email, password);
-      setUser(loggedInUser);
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  }, [authRepository]);
+  const signIn = useCallback(
+    async (email: string, password: string) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const loggedInUser = await signInUseCase.execute(email, password);
+        setUser(loggedInUser);
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [signInUseCase],
+  );
 
-  // Sign Out
   const signOut = useCallback(async () => {
     setLoading(true);
     try {
-      await authRepository.signOut();
+      await signOutUseCase.execute();
       setUser(null);
     } catch (err: any) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
-  }, [authRepository]);
+  }, [signOutUseCase]);
 
-  // Get current user (misalnya cek saat app dibuka)
   const fetchCurrentUser = useCallback(async () => {
     setLoading(true);
     try {
-      const current = await authRepository.getCurrentUser();
+      const current = await fetchCurrentUserUseCase.execute();
       setUser(current);
     } catch (err: any) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
-  }, [authRepository]);
+  }, [fetchCurrentUserUseCase]);
 
-  return {
-    user,
-    loading,
-    error,
-    signUp,
-    signIn,
-    signOut,
-    fetchCurrentUser,
-  };
+  return { user, loading, error, signUp, signIn, signOut, fetchCurrentUser };
 }

@@ -8,9 +8,9 @@ type HeaderProps = {
     classname?: string
 }
 
-export default function   Header({title, desc, classname}: HeaderProps) {
+export default function Header({title, desc, classname}: HeaderProps) {
   return (
-    <View className={`flex flex-col w-full items-center bg-white ${classname} gap-2`}>
+    <View className={`flex flex-col w-full items-center ${classname} gap-2`}>
         <View className='flex p-3 bg-primary rounded-xl w-fit'>
             <Logo width={40} height={46} />
         </View>

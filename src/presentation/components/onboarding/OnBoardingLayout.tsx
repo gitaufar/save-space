@@ -111,17 +111,21 @@ export const OnBoardingLayout = ({ slides }: OnBoardingLayoutProps) => {
               {slides.map((_, idx) => (
                 <View
                   key={idx}
-                  className={`mx-1 rounded-full ${currentIndex === idx ? 'bg-primary' : 'bg-gray-300'}`}
-                  style={{ width: currentIndex === idx ? 16 : 8, height: 8 }}
+                  style={{
+                    width: 10,
+                    height: 10,
+                    borderRadius: 5,
+                    marginHorizontal: 4,
+                    backgroundColor: idx <= currentIndex ? '#1F2937' : '#D1D5DB', // hijau untuk yang sudah lewat
+                  }}
                 />
               ))}
             </View>
-
             {/* Right arrow */}
             <Pressable
               onPress={goToNextSlide}
               hitSlop={8}
-              className="p-6 rounded-full bg-[#00BFA6]"
+              className="p-6 rounded-full bg-[#1F2937]"
             >
               <ChevronRight size={24} color="#FFFFFF" />
             </Pressable>

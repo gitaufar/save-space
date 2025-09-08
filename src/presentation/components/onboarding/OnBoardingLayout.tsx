@@ -12,9 +12,10 @@ type Slide = {
 
 type OnBoardingLayoutProps = {
   slides: Slide[];
+  onBoardingShowed: () => void;
 };
 
-export const OnBoardingLayout = ({ slides }: OnBoardingLayoutProps) => {
+export const OnBoardingLayout = ({ slides, onBoardingShowed }: OnBoardingLayoutProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const goToNextSlide = () => {
@@ -123,7 +124,7 @@ export const OnBoardingLayout = ({ slides }: OnBoardingLayoutProps) => {
             </View>
             {/* Right arrow */}
             <Pressable
-              onPress={goToNextSlide}
+              onPress={slides.length - 1 === currentIndex ? onBoardingShowed : goToNextSlide}
               hitSlop={8}
               className="p-6 rounded-full bg-[#1F2937]"
             >

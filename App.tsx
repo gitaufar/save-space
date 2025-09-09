@@ -1,59 +1,30 @@
-import './global.css';
-import { NavigationContainer, DefaultTheme } from "@react-navigation/native";
-import RegisterScreen from './src/presentation/screens/auth/RegisterScreen';
-import React, { useEffect, useState } from "react";
+import React from "react";
+import "./global.css";
+import { AuthProvider } from "./src/presentation/contexts/AuthContext";
+import AppNavigator from "./src/presentation/navigation/AppNavigator";
+import { AuthDataSource } from "./src/data/datasources/AuthDataSource";
+import { AuthRepositoryImpl } from "./src/data/repositories/AuthRepositoryImpl";
+import { LoginUseCase } from "./src/domain/usecases/auth/LoginUseCase";
+import { RegisterUseCase } from "./src/domain/usecases/auth/RegisterUseCase";
+import { FetchCurrentUserUseCase } from "./src/domain/usecases/auth/FetchCurrentUserUseCase";
+import { LogoutUseCase } from "./src/domain/usecases/auth/LogoutUseCase";
 
-const MyTheme = {
-  ...DefaultTheme,
-  colors: {
-    ...DefaultTheme.colors,
-    background: "white",
-  },
-};
-// contoh simpan state (nanti bisa ganti pake async storage / supabase session)
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import OnBoardingNavigation from './src/presentation/navigation/OnBoardingNavigation';
-import AuthNavigator from './src/presentation/navigation/AuthNavigator';
-import KaryawanNavigator from './src/presentation/navigation/KaryawanNavigator';
-import HrdNavigator from './src/presentation/navigation/HrdNavigator';
+const dataSource = new AuthDataSource();
+const authRepository = new AuthRepositoryImpl(dataSource);
+const loginUseCase = new LoginUseCase(authRepository);
+const registerUseCase = new RegisterUseCase(authRepository);
+const fetchCurrentUserUseCase = new FetchCurrentUserUseCase(authRepository);
+const logoutUseCase = new LogoutUseCase(authRepository);
 
 export default function App() {
-  const [isFirstLaunch, setIsFirstLaunch] = useState<boolean | null>(null);
-  const [user, setUser] = useState<{ role: "hrd" | "karyawan" } | null>(null);
-
-  useEffect(() => {
-    // cek apakah onboarding sudah pernah ditampilkan
-    AsyncStorage.getItem("alreadyLaunched").then((value) => {
-      if (value == null) {
-        AsyncStorage.setItem("alreadyLaunched", "true"); // pertama kali buka app
-        setIsFirstLaunch(true);
-      } else {
-        setIsFirstLaunch(false);
-      }
-    });
-
-    // TODO: cek session user dari Supabase / local storage
-    // misalnya contoh dummy:
-    // setUser({ role: "karyawan" });
-    // setUser({ role: "hrd" });
-    // setUser(null); // kalau belum login
-  }, []);
-
-  if (isFirstLaunch === null) {
-    return null; // bisa kasih splash screen disini
-  }
-
   return (
-      isFirstLaunch ? (
-        <OnBoardingNavigation />
-      ) : !user ? (
-        <AuthNavigator />
-      ) : user.role === "karyawan" ? (
-        <KaryawanNavigator />
-      ) : (
-        <HrdNavigator />
-      )
+    <AuthProvider
+      signUpUseCase={registerUseCase}
+      signInUseCase={loginUseCase}
+      signOutUseCase={logoutUseCase}
+      fetchCurrentUserUseCase={fetchCurrentUserUseCase}
+    >
+      <AppNavigator />
+    </AuthProvider>
   );
 }
-
-

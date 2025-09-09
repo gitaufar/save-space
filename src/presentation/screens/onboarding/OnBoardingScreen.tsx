@@ -23,10 +23,14 @@ const slides = [
   },
 ];
 
-export default function OnBoardingScreen() {
+type OnBoardingScreenProps = {
+  onBoardingShowed: () => void
+}
+
+export default function OnBoardingScreen({onBoardingShowed}: OnBoardingScreenProps) {
   return (
     <View className="flex-1 bg-white">
-      <OnBoardingLayout slides={slides} />
+      <OnBoardingLayout slides={slides} onBoardingShowed={onBoardingShowed}/>
     </View>
   );
 }

@@ -7,7 +7,7 @@ type TextFieldProps = {
   value: string;
   onChangeText: (text: string) => void;
   secureTextEntry?: boolean;
-  icon?: ReactNode;
+  icon?: React.ReactNode;
 };
 
 export const TextField = ({

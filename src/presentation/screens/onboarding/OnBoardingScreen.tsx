@@ -7,7 +7,7 @@ import Onboarding3 from '../../../assets/onboarding/onboarding3.svg';
 
 const slides = [
   {
-    title: "Solusi di Tangan Manusia",
+    title: "Awali Harimu dengan Jujur",
     image: <Onboarding1 />,
     paragraph: 'Isi mood setiap pagi dan sore, biarkan AI membantumu memahami pola emosimu.',
   },

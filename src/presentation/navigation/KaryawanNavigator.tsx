@@ -3,6 +3,10 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { View } from "react-native";
+import PengaturanKaryawanScreen from '../screens/karyawan/PengaturanKaryawanScreen';
+import { NavbarKaryawan } from '../components/karyawan/Beranda/NavbarKaryawan';
+import DashboardKaryawanScreen from '../screens/karyawan/DashboardKaryawanScreen';
+
 
 // import screen kamu
 // import HomeScreen from "../screens/karyawan/HomeScreen";
@@ -25,20 +29,12 @@ const HomeStack = createNativeStackNavigator();
 // 🔹 Bottom Tabs
 export default function KaryawanNavigator() {
   return (
-    <View></View>
-    // <Tab.Navigator
-    //   screenOptions={({ route }) => ({
-    //     headerShown: false,
-    //     tabBarIcon: ({ color, size }) => {
-    //       let iconName: string = "home";
-    //       if (route.name === "Home") iconName = "home";
-    //       if (route.name === "Profile") iconName = "person";
-    //       return <Icon name={iconName} size={size} color={color} />;
-    //     },
-    //   })}
-    // >
-    //   <Tab.Screen name="Home" component={HomeStackNavigator} />
-    //   <Tab.Screen name="Profile" component={ProfileScreen} />
-    // </Tab.Navigator>
+    <Tab.Navigator
+      tabBar={props => <NavbarKaryawan {...props} />}
+      screenOptions={{ headerShown: false }}
+    >
+      <Tab.Screen name="DashboardKaryawan" component={DashboardKaryawanScreen} />
+      <Tab.Screen name="PengaturanKaryawan" component={PengaturanKaryawanScreen} />
+    </Tab.Navigator>
   );
 }

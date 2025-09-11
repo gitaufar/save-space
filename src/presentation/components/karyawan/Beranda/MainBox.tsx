@@ -1,5 +1,6 @@
 import React from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text } from "react-native";
+import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 
 // Definisikan enum untuk tipe box
 export enum MainBoxType {
@@ -10,65 +11,71 @@ export enum MainBoxType {
 
 // Tambahkan properti type pada MainBoxProps
 type MainBoxProps = {
-    title: string;
-    paragraph: string;
-    image: React.ReactNode;
-    onPress: () => void;
-    type: MainBoxType;
-    // Properti opsional untuk data kustom
-    customData?: any;
-    // Properti opsional untuk styling
-    minHeight?: number; // Tinggi minimum box dalam pixel
-}
+  title: string;
+  paragraph: string;
+  image: React.ReactNode;
+  // onPress dihilangkan dari UI (tidak dipakai), jadikan opsional agar tidak error
+  onPress?: () => void;
+  type: MainBoxType;
+  customData?: any;
+  minHeight?: number; // Tinggi minimum box dalam pixel
+};
 
-export const MainBox = ({ 
-    title, 
-    onPress, 
-    image, 
-    paragraph, 
-    type, 
-    minHeight = 180 // Default 180px (h-48 equivalent)
+export const MainBox = ({
+  title,
+  image,
+  paragraph,
+  type,
+  minHeight = 180, // Default 180px (h-48 equivalent)
 }: MainBoxProps) => {
+  // Base styling yang digunakan oleh semua container
+  const baseStyle = {
+    minHeight,
+    padding: 32, // p-8
+  };
 
-    // Base styling yang digunakan oleh kedua container
-    const baseStyle = {
-        minHeight, // Gunakan minHeight sebagai tinggi minimum
-        padding: 32, // p-8 equivalent
-    };
-    
-    // Konten yang akan ditampilkan di dalam container
-    const content = (
-        <View className="flex-row items-center">
-            <View className="items-start justify-center w-1/2">
-                <Text className="text-[18px] font-bold text-white">{title}</Text>
-                <Text className="text-[14px] text-white/80 mt-1">{paragraph}</Text>
-            </View>
-            <View className="items-end justify-center w-1/2">
-                {image}
-            </View>
+  // “Button” non-klik khusus untuk MOOD_CHECK dan CBI_TEST
+  const renderAction = () => {
+    if (type === MainBoxType.MOOD_CHECK) {
+      return (
+        <View className="mt-3 self-start flex-row items-center bg-[#E5E7EB]/50 px-6 py-4 rounded-xl">
+          <Text className="text-[14px] font-semibold text-[#1E293B] mr-1">Isi Sekarang</Text>
+          <MaterialIcons name="chevron-right" size={16} color="#1E293B"  />
         </View>
-    );
-    
-    // Render berbeda berdasarkan tipe
-    if (type === MainBoxType.WELCOME) {
-        return (
-            <View 
-                className={`w-full bg-primary rounded-3xl shadow-md mb-4 justify-center`}
-                style={baseStyle}
-            >
-                {content}
-            </View>
-        );
-    } else {
-        return (
-            <TouchableOpacity 
-                onPress={onPress} 
-                className={`w-full bg-primary rounded-3xl shadow-md mb-4 justify-center`}
-                style={baseStyle}
-                activeOpacity={0.9}
-            >
-                {content}
-            </TouchableOpacity>
-        );
+      );
     }
-}
+    if (type === MainBoxType.CBI_TEST) {
+      return (
+        <View className="mt-3 self-start flex-row items-center bg-[#E5E7EB]/50 px-6 py-4 rounded-xl">
+          <Text className="text-[13px] text-[#1E293B] mr-1">Mulai Tes CBI</Text>
+          <MaterialIcons name="edit" size={16} color="#1E293B" />
+        </View>
+      );
+    }
+    return null;
+  };
+
+  // Konten dalam box
+  const content = (
+    <View className="flex-row items-center">
+      <View className="items-start justify-center w-1/2">
+        <Text className="text-[18px] font-bold text-white">{title}</Text>
+        <Text className="text-[14px] text-white/80 mt-1">{paragraph}</Text>
+        {renderAction()}
+      </View>
+      <View className="items-end justify-center w-1/2">
+        {image}
+      </View>
+    </View>
+  );
+
+  // Semua tipe menjadi View (tidak TouchableOpacity)
+  return (
+    <View
+      className="w-full bg-primary rounded-3xl shadow-md mb-4 justify-center"
+      style={baseStyle}
+    >
+      {content}
+    </View>
+  );
+};

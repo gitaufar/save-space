@@ -17,15 +17,15 @@ export const mainBoxDefaultData = {
     onPress: () => console.log("Welcome pressed")
   },
   [MainBoxType.MOOD_CHECK]: {
-    title: "Bagaimana Mood Anda?",
-    paragraph: "Yuk, cek mood harian Anda",
-    image: <MoodIcon width={60} height={60} />,
+    title: "Mood Check!",
+    paragraph: "Bagikan perasaan Anda hari ini!",
+    image: <MoodIcon width={120} height={120} />,
     onPress: () => console.log("Mood check pressed")
   },
   [MainBoxType.CBI_TEST]: {
-    title: "Test CBI",
-    paragraph: "Identifikasi potensi burnout Anda",
-    image: <CBIIcon width={60} height={60} />,
+    title: "Yuk, Cek Burnout!",
+    paragraph: "Ikuti CBI Test untuk memahami kondisi kerja Anda",
+    image: <CBIIcon width={120} height={120} />,
     onPress: () => console.log("CBI test pressed")
   }
 };
@@ -82,7 +82,6 @@ export const DashboardKaryawanLayout = () => {
             </View>
             
             <View className="px-5">
-                {/* Box Selamat Datang */}
                 <MainBox 
                     title={mainBoxData[MainBoxType.WELCOME].title}
                     paragraph={mainBoxData[MainBoxType.WELCOME].paragraph}
@@ -90,7 +89,6 @@ export const DashboardKaryawanLayout = () => {
                     onPress={mainBoxData[MainBoxType.WELCOME].onPress}
                     type={MainBoxType.WELCOME}
                 />
-                {/* Box Cek Mood */}
                 <RiwayatMood
                  />
                 <AIDailyInsight   

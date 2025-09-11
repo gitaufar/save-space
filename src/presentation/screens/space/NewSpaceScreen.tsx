@@ -8,6 +8,7 @@ import { TextField } from "../../components/common/TextField";
 import InvitationKey from '../../../assets/space/invitation_key.svg';
 import Division from '../../../assets/space/division.svg';
 import { Button } from "../../components/common/Button";
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 export default function InviteSpaceScreen() {
     const navigation = useNavigation();
@@ -26,7 +27,8 @@ export default function InviteSpaceScreen() {
                 className="absolute top-12 left-8 z-10"
                 onPress={handleGoBack}
             >
-                <ChevronLeft size={24} color="#333" />
+                {/* <ChevronLeft size={24} color="#333" /> */}
+                <MaterialIcons name="arrow-back" size={24} color="#333" />
             </TouchableOpacity>
 
             <View className="w-full items-center pt-32">

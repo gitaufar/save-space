@@ -5,7 +5,19 @@ import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 
 export const NavbarKaryawan = ({ state, navigation }: BottomTabBarProps) => {
   return (
-    <View className="w-full bg-white flex flex-row items-center justify-center shadow-2xl rounded-t-3xl py-8 px-10">
+    <View 
+      className="w-full bg-white flex flex-row items-center justify-center rounded-t-3xl pb-8 pt-6 px-10"
+      style={{
+        shadowColor: "#000",
+        shadowOffset: {
+          width: 0,
+          height: -4, // Arah shadow ke atas karena navbar di bawah
+        },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+        elevation: 16 // Elevation lebih tinggi untuk Android
+      }}
+    >
         <View className="w-full flex flex-row items-center justify-between px-14">
             <TouchableOpacity 
                 className="flex flex-col items-center justify-center"

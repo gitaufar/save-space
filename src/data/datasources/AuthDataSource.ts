@@ -5,43 +5,75 @@ export class AuthDataSource {
     email: string,
     password: string,
     name: string,
-    role: 'HRD' | 'Karyawan',
+    role: 'Manager' | 'Karyawan',
     space_id?: string,
   ) {
-    // 1. Daftar ke Supabase Auth
-    const {
-      user,
-      session,
-      error: authError,
-    } = await supabase.auth.signUp({
-      email,
-      password,
-    });
-    if (authError) throw authError;
+    console.log('🚀 Starting signup process...');
+    console.log('📧 Email:', email);
+    console.log('👤 Name:', name);
+    console.log('👔 Role:', role);
+    console.log('🏢 Space ID:', space_id);
 
-    if (!user) throw new Error('User tidak berhasil dibuat di Supabase Auth');
+    try {
+      // 1. Daftar ke Supabase Auth
+      console.log('🔐 Creating auth user...');
+      const { user, session, error } = await supabase.auth.signUp({
+        email,
+        password,
+      });
 
-    // 2. Insert juga ke tabel `users` custom
-    const { data: userRow, error: insertError } = await supabase
-      .from('users')
-      .insert([
-        {
-          id: user.id, // pakai id dari Supabase Auth
-          name,
-          email,
-          role,
-          space_id: space_id ?? null,
-        },
-      ])
-      .select()
-      .single();
+      console.log('🔐 Auth response:', {
+        user: user?.id,
+        session: !!session,
+        error,
+      });
 
-    if (insertError) throw insertError;
+      if (error) {
+        console.error('❌ Auth error:', error);
+        throw error;
+      }
+      if (!user) {
+        console.error('❌ No user returned from auth');
+        throw new Error('User creation failed');
+      }
 
-    return { user, session, appUser: userRow };
+      console.log('✅ Auth user created:', user.id);
+
+      // 2. Simpan data tambahan ke tabel users
+      console.log('💾 Inserting to users table...');
+      const userData = {
+        id: user.id,
+        email: user.email,
+        name: name,
+        role: role,
+        space_id: space_id,
+      };
+      console.log('💾 User data to insert:', userData);
+
+      const { data: appUser, error: dbError } = await supabase
+        .from('users')
+        .insert(userData)
+        .select()
+        .single();
+
+      console.log('💾 Database response:', { appUser, dbError });
+
+      if (dbError) {
+        console.error('❌ Database error:', dbError);
+        throw new Error(`Database insert failed: ${dbError.message}`);
+      }
+
+      console.log('✅ User data saved to database');
+      console.log('🎉 Signup completed successfully');
+
+      return { authUser: user, appUser, session };
+    } catch (error) {
+      console.error('💥 Signup failed:', error);
+      throw error;
+    }
   }
-
   async signIn(email: string, password: string) {
+    // v1 syntax: signIn
     const { user, session, error } = await supabase.auth.signIn({
       email,
       password,
@@ -66,7 +98,7 @@ export class AuthDataSource {
   }
 
   async getCurrentUser() {
-    // v1: langsung ambil user
+    // v1 syntax: user() returns synchronously
     const user = supabase.auth.user();
     return user;
   }

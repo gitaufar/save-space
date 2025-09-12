@@ -29,7 +29,7 @@ export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isVisible, setIsVisible] = useState(true);
-  const { loading, error, signIn } = useAuthViewModel({
+  const { loading, error, signIn, user } = useAuthViewModel({
     signUpUseCase: registerUseCase,
     signInUseCase: loginUseCase,
     signOutUseCase: logoutUseCase,

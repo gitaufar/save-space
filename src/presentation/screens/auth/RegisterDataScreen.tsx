@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Image, Pressable } from 'react-native';
+import { View, Text, Image, Pressable, Alert } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
@@ -12,9 +12,10 @@ import { PermissionsAndroid, Platform } from 'react-native';
 import Step2FotoProfil from '../../components/auth/registerData/Step2FotoProfil';
 import Step3Selesai from '../../components/auth/registerData/Step3Selesai';
 import Step1DataDiri from '../../components/auth/registerData/Step1DataDiri';
+import { useAuth } from '../../contexts/AuthContext';
 
 type RegisterStepRoute = {
-  role: 'manager' | 'karyawan';
+  role: 'Manager' | 'Karyawan';
 };
 
 type AuthNav = NativeStackNavigationProp<AuthStackParamList, 'RegisterStep'>;
@@ -23,6 +24,7 @@ export default function RegisterDataScreen() {
   const navigation = useNavigation<AuthNav>();
   const route = useRoute();
   const { role } = route.params as RegisterStepRoute;
+  const { signUp, loading, error } = useAuth();
 
   const [step, setStep] = useState(1);
 
@@ -34,10 +36,61 @@ export default function RegisterDataScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  // validation state
+  const [validationErrors, setValidationErrors] = useState<{[key: string]: string}>({});
+
   // state foto profil
   const [photo, setPhoto] = useState<string | null>(null);
 
-  const handleNextStep = () => {
+  const handleNextStep = async () => {
+    if (step === 1) {
+      // Reset validation errors
+      setValidationErrors({});
+      
+      // Validate form
+      const errors: {[key: string]: string} = {};
+      
+      if (!nama.trim()) {
+        errors.nama = 'Nama lengkap harus diisi';
+      }
+      
+      if (!email.trim()) {
+        errors.email = 'Email harus diisi';
+      } else if (!/\S+@\S+\.\S+/.test(email)) {
+        errors.email = 'Format email tidak valid';
+      }
+      
+      if (!password) {
+        errors.password = 'Password harus diisi';
+      } else if (password.length < 6) {
+        errors.password = 'Password minimal 6 karakter';
+      }
+      
+      if (!confirmPassword) {
+        errors.confirmPassword = 'Konfirmasi password harus diisi';
+      } else if (password !== confirmPassword) {
+        errors.confirmPassword = 'Password dan konfirmasi password tidak sama';
+      }
+
+      if (Object.keys(errors).length > 0) {
+        setValidationErrors(errors);
+        Alert.alert('Error', 'Mohon perbaiki kesalahan pada form');
+        return;
+      }
+
+      // Register user
+      try {
+        await signUp(email, password, nama, role);
+        Alert.alert('Sukses', 'Akun berhasil didaftarkan!', [
+          { text: 'OK', onPress: () => setStep(step + 1) }
+        ]);
+      } catch (err: any) {
+        Alert.alert('Error', err.message || 'Gagal mendaftar');
+        return;
+      }
+      return;
+    }
+    
     if (step >= 3) {
       navigation.navigate('Login');
       return;
@@ -114,6 +167,8 @@ export default function RegisterDataScreen() {
           }
           onNext={handleNextStep}
           onBack={handleBackStep}
+          loading={loading}
+          validationErrors={validationErrors}
         />
       )}
 
@@ -124,6 +179,7 @@ export default function RegisterDataScreen() {
           onTakePhoto={handleTakePhoto}
           onChooseGallery={handleChooseFromGallery}
           onBack={handleBackStep}
+          onSave={handleNextStep}
         />
       )}
 

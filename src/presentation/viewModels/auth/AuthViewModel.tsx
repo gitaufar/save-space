@@ -23,11 +23,17 @@ export function useAuthViewModel({
   const [error, setError] = useState<string | null>(null);
 
   const signUp = useCallback(
-    async (email: string, password: string) => {
+    async (
+      email: string,
+      password: string,
+      name: string,
+      role: 'Manager' | 'Karyawan',
+      space_id?: string
+    ) => {
       setLoading(true);
       setError(null);
       try {
-        const newUser = await signUpUseCase.execute(email, password);
+        const newUser = await signUpUseCase.execute(email, password, name, role, space_id);
         setUser(newUser);
       } catch (err: any) {
         setError(err.message);

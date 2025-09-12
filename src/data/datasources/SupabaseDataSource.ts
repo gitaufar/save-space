@@ -53,6 +53,29 @@ export class SupabaseDataSource {
     return true;
   }
 
+  async joinSpaceByInvitationCode(userId: string, code: string) {
+    // cari space berdasarkan invitation_code
+    const { data: space, error: spaceError } = await supabase
+      .from('spaces')
+      .select('id')
+      .eq('invitation_code', code)
+      .single();
+
+    if (spaceError) throw spaceError;
+    if (!space) throw new Error('Space not found');
+
+    // update user dengan space_id
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .update({ space_id: space.id })
+      .eq('id', userId)
+      .select()
+      .single();
+
+    if (userError) throw userError;
+    return user;
+  }
+
   // ==== USERS ====
   async createUser(data: {
     name: string;
@@ -96,6 +119,47 @@ export class SupabaseDataSource {
     if (error) throw error;
     return true;
   }
+
+async uploadAvatar(userId: string, file: File) {
+  // kasih nama file unik
+  const fileExt = file.name.split(".").pop();
+  const fileName = `${userId}-${Date.now()}.${fileExt}`;
+  const filePath = `avatars/${fileName}`;
+
+  // upload ke bucket "avatars"
+  const { error } = await supabase.storage
+    .from("avatars")
+    .upload(filePath, file, {
+      cacheControl: "3600",
+      upsert: false, // kalau true, bisa overwrite file dengan nama sama
+    });
+
+  if (error) throw error;
+
+  // ambil public url
+  const { data } = supabase.storage.from("avatars").getPublicUrl(filePath);
+
+  if (!data || !data.publicURL) {
+    throw new Error("Failed to get public URL for avatar.");
+  }
+
+  return data.publicURL; // ini bisa disimpan ke tabel users
+}
+
+async updateUserAvatar(userId: string, file: File) {
+  const avatarUrl = await this.uploadAvatar(userId, file);
+
+  const { data, error } = await supabase
+    .from("users")
+    .update({ avatar_url: avatarUrl }) // tambahin kolom avatar_url di tabel users
+    .eq("id", userId)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
 
   // ==== MOOD RESPONSES ====
   async addMoodResponse(data: {
@@ -205,18 +269,17 @@ export class SupabaseDataSource {
     if (error) throw error;
     return true;
   }
-  
+
   async getLatestAIInsightByEmployee(employeeId: string) {
-  const { data, error } = await supabase
-    .from("ai_insights")
-    .select("*")
-    .eq("employee_id", employeeId)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .single();
+    const { data, error } = await supabase
+      .from('ai_insights')
+      .select('*')
+      .eq('employee_id', employeeId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
 
-  if (error) throw error;
-  return data;
-}
-
+    if (error) throw error;
+    return data;
+  }
 }

@@ -11,9 +11,6 @@ import { Button } from "../../components/common/Button";
 export default function OldSpaceScreen() {
     const navigation = useNavigation();
     const [divisi, setDivisi] = useState('');
-    const [deskripsi, setDeskripsi] = useState('');
-    const [budayaKerja, setBudayaKerja] = useState('');
-    const [jamKerja, setJamKerja] = useState('');
 
     const handleGoBack = () => {
         navigation.goBack();

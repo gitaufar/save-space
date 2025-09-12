@@ -7,6 +7,7 @@ import AuthNavigator from "./AuthNavigator";
 import KaryawanNavigator from "./KaryawanNavigator";
 import HrdNavigator from "./HrdNavigator";
 import { useAuth } from "../contexts/AuthContext";
+import SpaceNavigator from "./SpaceNavigator";
 
 const MyTheme = {
   ...DefaultTheme,
@@ -43,6 +44,8 @@ export default function AppNavigator() {
         <OnBoardingNavigation />
       ) : !user ? (
         <AuthNavigator />
+      ) : !user.space_id ? (
+        user.role === "Manager" ? <SpaceNavigator initialRouteName="Space"/> : <SpaceNavigator initialRouteName="OldSpace"/>
       ) : user.role === "Karyawan" ? (
         <KaryawanNavigator />
       ) : (

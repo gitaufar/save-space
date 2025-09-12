@@ -22,6 +22,8 @@ type Props = {
   toggleConfirmPassword: () => void;
   onNext: () => void;
   onBack: () => void;
+  loading?: boolean;
+  validationErrors?: {[key: string]: string};
 };
 
 export default function Step1DataDiri({
@@ -40,6 +42,8 @@ export default function Step1DataDiri({
   toggleConfirmPassword,
   onNext,
   onBack,
+  loading = false,
+  validationErrors = {},
 }: Props) {
   return (
     <View className="p-4">
@@ -77,7 +81,11 @@ export default function Step1DataDiri({
           toggleSecure={toggleConfirmPassword}
           password={password}
         />
-        <Button text="Selanjutnya" onPress={onNext} margin="0" />
+        <Button 
+          text={loading ? "Mendaftar..." : "Selanjutnya"} 
+          onPress={onNext} 
+          margin="0" 
+        />
       </View>
     </View>
   );

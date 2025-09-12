@@ -4,9 +4,9 @@ import { AuthRepository } from "../../repositories/AuthRepository";
 export class RegisterUseCase {
   constructor(private repo: AuthRepository) {}
 
-  async execute(email: string, password: string): Promise<User> {
+  async execute(email: string, password: string, name: string, role: 'Manager' | 'Karyawan', space_id?: string): Promise<User> {
     try {
-      return await this.repo.signUp(email, password);
+      return await this.repo.signUp(email, password, name, role, space_id);
     } catch (err: any) {
       if (err.message.includes("User already registered") || err.message.includes("already exists")) {
         throw new Error("Email sudah terdaftar");

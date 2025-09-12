@@ -1,13 +1,15 @@
 import React from 'react';
 import { View } from 'react-native';
 import HeaderRegister from './HeaderRegister';
+import { Button } from '../../common/Button';
 
 type Props = {
   step: number;
   onBack: () => void;
+  onFinish: () => void;
 };
 
-export default function Step3Selesai({ step, onBack }: Props) {
+export default function Step3Selesai({ step, onBack, onFinish }: Props) {
   return (
     <View className="p-4">
       <HeaderRegister
@@ -17,6 +19,9 @@ export default function Step3Selesai({ step, onBack }: Props) {
         subtitle="Pendaftaran Berhasil"
         desc="Akun Anda siap digunakan, silakan login"
       />
+      <View className="mt-6">
+        <Button text="Ke Halaman Login" onPress={onFinish} margin="0" />
+      </View>
     </View>
   );
 }

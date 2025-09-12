@@ -4,23 +4,10 @@ import Header from '../../components/auth/Header';
 import { TextField } from '../../components/common/TextField';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { Button } from '../../components/common/Button';
-import { useAuthViewModel } from '../../viewModels/auth/AuthViewModel';
-import { AuthRepositoryImpl } from '../../../data/repositories/AuthRepositoryImpl';
-import { AuthDataSource } from '../../../data/datasources/AuthDataSource';
-import { LoginUseCase } from '../../../domain/usecases/auth/LoginUseCase';
-import { FetchCurrentUserUseCase } from '../../../domain/usecases/auth/FetchCurrentUserUseCase';
-import { RegisterUseCase } from '../../../domain/usecases/auth/RegisterUseCase';
-import { LogoutUseCase } from '../../../domain/usecases/auth/LogoutUseCase';
+import { useAuth } from '../../contexts/AuthContext';
 import { useNavigation } from '@react-navigation/native';
 import { AuthStackParamList } from '../../navigation/type';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-
-const dataSource = new AuthDataSource();
-const authRepository = new AuthRepositoryImpl(dataSource);
-const loginUseCase = new LoginUseCase(authRepository);
-const registerUseCase = new RegisterUseCase(authRepository);
-const fetchCurrentUserUseCase = new FetchCurrentUserUseCase(authRepository);
-const logoutUseCase = new LogoutUseCase(authRepository);
 
 type AuthNav = NativeStackNavigationProp<AuthStackParamList, 'Login'>;
 
@@ -29,12 +16,7 @@ export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isVisible, setIsVisible] = useState(true);
-  const { loading, error, signIn, user } = useAuthViewModel({
-    signUpUseCase: registerUseCase,
-    signInUseCase: loginUseCase,
-    signOutUseCase: logoutUseCase,
-    fetchCurrentUserUseCase: fetchCurrentUserUseCase,
-  });
+  const { loading, error, signIn, user } = useAuth();
 
   return (
     <View className="flex-1 bg-white flex flex-col pt-32">

@@ -1,6 +1,27 @@
 import { supabase } from '../../core/utils/SupabaseClient';
 
 export class AuthDataSource {
+  private sanitizeEmail(email: string) {
+    let e = String(email ?? '');
+    try {
+      e = e.normalize('NFKC');
+    } catch {}
+    // remove zero-width, control chars, and any whitespace
+    e = e
+      .replace(/[\u200B-\u200D\uFEFF]/g, '')
+      .replace(/[\x00-\x1F\x7F]/g, '')
+      .replace(/["']/g, '')
+      .replace(/\s+/g, '')
+      .trim()
+      .toLowerCase();
+    return e;
+  }
+
+  private isValidEmail(email: string) {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+  }
+
   async signUp(
     email: string,
     password: string,
@@ -8,87 +29,62 @@ export class AuthDataSource {
     role: 'Manager' | 'Karyawan',
     space_id?: string,
   ) {
-    console.log('🚀 Starting signup process...');
-    console.log('📧 Email:', email);
-    console.log('👤 Name:', name);
-    console.log('👔 Role:', role);
-    console.log('🏢 Space ID:', space_id);
+    const cleanEmail = this.sanitizeEmail(email);
+    console.log('[Auth] SignUp start');
+    console.log('[Auth] Raw email:', JSON.stringify(String(email ?? '')));
+    console.log('[Auth] Clean email:', JSON.stringify(cleanEmail));
 
     try {
-      // 1. Daftar ke Supabase Auth
-      console.log('🔐 Creating auth user...');
+      if (!this.isValidEmail(cleanEmail)) {
+        throw { message: `Invalid email format: ${cleanEmail}`, status: 400 } as any;
+      }
+
+      // 1. Create Supabase Auth user (v1)
       const { user, session, error } = await supabase.auth.signUp({
-        email,
+        email: cleanEmail,
         password,
       });
 
-      console.log('🔐 Auth response:', {
-        user: user?.id,
-        session: !!session,
-        error,
-      });
+      if (error) throw error;
+      if (!user) throw new Error('User creation failed');
 
-      if (error) {
-        console.error('❌ Auth error:', error);
-        throw error;
-      }
-      if (!user) {
-        console.error('❌ No user returned from auth');
-        throw new Error('User creation failed');
-      }
-
-      console.log('✅ Auth user created:', user.id);
-
-      // 2. Simpan data tambahan ke tabel users
-      console.log('💾 Inserting to users table...');
+      // 2. Save profile in app_users (v1 insert)
       const userData = {
         id: user.id,
         email: user.email,
-        name: name,
-        role: role,
-        space_id: space_id,
+        name,
+        role,
+        space_id,
       };
-      console.log('💾 User data to insert:', userData);
 
-      const { data: appUser, error: dbError } = await supabase
+      const { data: insertedRows, error: dbError } = await supabase
         .from('app_users')
-        .insert(userData)
-        .select()
-        .single();
+        .insert([userData], { returning: 'representation' });
 
-      console.log('💾 Database response:', { appUser, dbError });
+      if (dbError) throw new Error(`Database insert failed: ${dbError.message}`);
 
-      if (dbError) {
-        console.error('❌ Database error:', dbError);
-        throw new Error(`Database insert failed: ${dbError.message}`);
-      }
-
-      console.log('✅ User data saved to database');
-      console.log('🎉 Signup completed successfully');
-
+      const appUser = insertedRows?.[0] ?? null;
       return { authUser: user, appUser, session };
     } catch (error) {
       console.error('💥 Signup failed:', error);
       throw error;
     }
   }
+
   async signIn(email: string, password: string) {
-    // v1 syntax: signIn
+    const cleanEmail = this.sanitizeEmail(email);
     const { user, session, error } = await supabase.auth.signIn({
-      email,
+      email: cleanEmail,
       password,
     });
     if (error) throw error;
 
-    // Query ke tabel users untuk ambil profil lengkap
     const { data: appUser, error: userError } = await supabase
       .from('app_users')
       .select('*')
       .eq('id', user?.id)
       .single();
-
     if (userError) throw userError;
-
     return { authUser: user, session, appUser };
   }
 

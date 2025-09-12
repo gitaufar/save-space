@@ -1,5 +1,4 @@
 import React from 'react';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { View } from 'react-native';
 
 export type HrdTabParamList = {
@@ -8,11 +7,10 @@ export type HrdTabParamList = {
   CbiTest: undefined;
 };
 
-const Tab = createBottomTabNavigator<HrdTabParamList>();
 
 export default function HrdNavigator() {
   return (
-    <View></View>
+    <View />
     // <Tab.Navigator screenOptions={{ headerShown: false }}>
     //   <Tab.Screen name="HrdHome" component={HrdHomeScreen} />
     //   <Tab.Screen name="Profile" component={ProfileScreen} />

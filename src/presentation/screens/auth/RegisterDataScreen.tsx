@@ -15,7 +15,7 @@ import Step1DataDiri from '../../components/auth/registerData/Step1DataDiri';
 import { useAuth } from '../../contexts/AuthContext';
 
 type RegisterStepRoute = {
-  role: 'Manager' | 'Karyawan';
+  role: 'manager' | 'karyawan';
 };
 
 type AuthNav = NativeStackNavigationProp<AuthStackParamList, 'RegisterStep'>;
@@ -80,10 +80,10 @@ export default function RegisterDataScreen() {
 
       // Register user
       try {
-        await signUp(email, password, nama, role);
-        Alert.alert('Sukses', 'Akun berhasil didaftarkan!', [
-          { text: 'OK', onPress: () => setStep(step + 1) }
-        ]);
+        const mappedRole = role === 'manager' ? 'Manager' : 'Karyawan';
+        await signUp(email, password, nama, mappedRole);
+        // lanjut ke step 2 untuk isi profil
+        setStep(step + 1);
       } catch (err: any) {
         Alert.alert('Error', err.message || 'Gagal mendaftar');
         return;
@@ -183,7 +183,13 @@ export default function RegisterDataScreen() {
         />
       )}
 
-      {step === 3 && <Step3Selesai step={step} onBack={handleBackStep} />}
+      {step === 3 && (
+        <Step3Selesai
+          step={step}
+          onBack={handleBackStep}
+          onFinish={() => navigation.reset({ index: 0, routes: [{ name: 'Login' }] })}
+        />
+      )}
     </View>
   );
 }

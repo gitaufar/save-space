@@ -33,8 +33,7 @@ export function useAuthViewModel({
       setLoading(true);
       setError(null);
       try {
-        const newUser = await signUpUseCase.execute(email, password, name, role, space_id);
-        setUser(newUser);
+        await signUpUseCase.execute(email, password, name, role, space_id);
       } catch (err: any) {
         setError(err.message);
       } finally {

@@ -94,8 +94,13 @@ export class AuthDataSource {
   }
 
   async getCurrentUser() {
-    // v1 syntax: user() returns synchronously
     const user = supabase.auth.user();
-    return user;
+    if (!user) return null;
+    const { data: appUser } = await supabase
+      .from('app_users')
+      .select('*')
+      .eq('id', user.id)
+      .single();
+    return { authUser: user, appUser };
   }
 }

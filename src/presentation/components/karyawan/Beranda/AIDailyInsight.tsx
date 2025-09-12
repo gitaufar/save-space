@@ -22,21 +22,9 @@ export const AIDailyInsight: React.FC<AIDailyInsightProps> = ({
     // Default text jika tidak ada insight dari AI
     const defaultText = "Lengkapi mood hari ini untuk mendapatkan saran dari AI.";
     
-    // Handler ketika komponen ditekan
-    const handlePress = () => {
-      if (onPress) {
-        onPress();
-      } else {
-        // Default behavior jika tidak ada handler
-        navigation.navigate('AIInsightScreen' as never);
-      }
-    };
-    
     return (
-        <TouchableOpacity 
+        <View
             className="w-full bg-[#FFB74D80]/20 rounded-3xl shadow-md p-6 border border-[#FFB74D] mb-4"
-            activeOpacity={0.8}
-            onPress={handlePress}
         >
             <View className="flex flex-row items-center">
                 <View className="p-2 bg-[#FFB74D]/20 rounded-full">
@@ -56,6 +44,6 @@ export const AIDailyInsight: React.FC<AIDailyInsightProps> = ({
                   </Text>
                 )}
             </View>
-        </TouchableOpacity>
+        </View>
     );
 }

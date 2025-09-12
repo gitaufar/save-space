@@ -31,14 +31,16 @@ export default function OldSpaceScreen() {
             </TouchableOpacity>
 
             <View className="w-full items-center pt-32">
-                <SpaceHeader
-                    title="Akses Ruang Sebelumnya"
-                    desc="Masuk ke ruang"
-                    logo={<Logo />}
-                />
             </View>
             
-            <ScrollView className="flex-1 px-5" showsVerticalScrollIndicator={false}>
+            <ScrollView className="flex-1 pt-32 px-5" showsVerticalScrollIndicator={false}>
+                <View className="w-full items-center">
+                    <SpaceHeader
+                        title="Akses Ruang Sebelumnya"
+                        desc="Masuk ke ruang"
+                        logo={<Logo />}
+                    />
+                </View>
                 <View className="mb-8">
                     <View className="mt-10 justify-center gap-8 pb-20">
                         <View className="bg-white rounded-2xl p-8 border border-[#E5E7EB]">

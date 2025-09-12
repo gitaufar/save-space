@@ -1,33 +1,16 @@
 import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import Icon from "react-native-vector-icons/MaterialIcons";
-import { View } from "react-native";
 import PengaturanKaryawanScreen from '../screens/karyawan/PengaturanKaryawanScreen';
 import { NavbarKaryawan } from '../components/karyawan/Beranda/NavbarKaryawan';
 import DashboardKaryawanScreen from '../screens/karyawan/DashboardKaryawanScreen';
-
-
-// import screen kamu
-// import HomeScreen from "../screens/karyawan/HomeScreen";
-// import DetailScreen from "../screens/karyawan/DetailScreen";
-// import ProfileScreen from "../screens/karyawan/ProfileScreen";
+import DetailRiwayatMoodScreen from '../screens/karyawan/DetailRiwayatMoodScreen';
 
 const Tab = createBottomTabNavigator();
-const HomeStack = createNativeStackNavigator();
+const Stack = createNativeStackNavigator();
 
-// 🔹 Stack khusus untuk Home
-// function HomeStackNavigator() {
-//   return (
-//     <HomeStack.Navigator screenOptions={{ headerShown: false }}>
-//       <HomeStack.Screen name="HomeMain" component={HomeScreen} />
-//       <HomeStack.Screen name="Detail" component={DetailScreen} />
-//     </HomeStack.Navigator>
-//   );
-// }
-
-// 🔹 Bottom Tabs
-export default function KaryawanNavigator() {
+// Tab Navigator untuk navigasi utama dengan tab bar
+function MainTabNavigator() {
   return (
     <Tab.Navigator
       tabBar={props => <NavbarKaryawan {...props} />}
@@ -36,5 +19,18 @@ export default function KaryawanNavigator() {
       <Tab.Screen name="DashboardKaryawan" component={DashboardKaryawanScreen} />
       <Tab.Screen name="PengaturanKaryawan" component={PengaturanKaryawanScreen} />
     </Tab.Navigator>
+  );
+}
+
+// Stack Navigator utama yang berisi TabNavigator dan screen lainnya
+export default function KaryawanNavigator() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      {/* Tab Navigator sebagai screen pertama */}
+      <Stack.Screen name="MainTab" component={MainTabNavigator} />
+      
+      {/* Screen lain yang tidak menampilkan tab bar */}
+      <Stack.Screen name="DetailRiwayatMoodScreen" component={DetailRiwayatMoodScreen} />
+    </Stack.Navigator>
   );
 }

@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import Logo from "../../../../assets/karyawan/query_stats.svg"; // Perhatikan path
 import { Button } from "../../common/Button";
+import DetailRiwayatMoodScreen from "../../../screens/karyawan/DetailRiwayatMoodScreen";
 
 // Interface untuk data mood
 export interface MoodData {
@@ -63,7 +64,8 @@ export const RiwayatMood: React.FC<RiwayatMoodProps> = ({
         onViewDetail();
       } else {
         // Default behavior jika tidak ada handler
-        navigation.navigate('DetailRiwayatMood' as never);
+        navigation.navigate('DetailRiwayatMoodScreen' as never);
+        // Pastikan nama screen sesuai dengan yang didaftarkan di KaryawanNavigator.tsx
       }
     };
 

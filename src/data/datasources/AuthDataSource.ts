@@ -51,7 +51,7 @@ export class AuthDataSource {
       console.log('💾 User data to insert:', userData);
 
       const { data: appUser, error: dbError } = await supabase
-        .from('users')
+        .from('app_users')
         .insert(userData)
         .select()
         .single();
@@ -82,7 +82,7 @@ export class AuthDataSource {
 
     // Query ke tabel users untuk ambil profil lengkap
     const { data: appUser, error: userError } = await supabase
-      .from('users')
+      .from('app_users')
       .select('*')
       .eq('id', user?.id)
       .single();

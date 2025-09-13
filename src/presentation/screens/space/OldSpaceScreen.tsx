@@ -38,21 +38,18 @@ export default function OldSpaceScreen() {
                     <View className="mt-10 justify-center gap-8 pb-20">
                         <View className="bg-white rounded-2xl p-8 border border-[#E5E7EB]">
                             <Text className="text-left text-[18px] font-bold text-[#1F2937] pb-2">
-                                Masukkan Kode Ruang
+                                Masukkan ID Ruang
                             </Text>
                             <Text className="text-left text-[14px] font-medium text-[#6B7280] pb-6">
-                                Masukkan kode ruang dari admin untuk bergabung ke workspace.
+                                Masukkan ID ruang dari admin untuk bergabung ke workspace.
                             </Text>
                             <TextField
-                                label="Kode Ruang"
-                                placeholder="Contoh: Masukkan Kode Ruang"
+                                label="ID Ruang"
+                                placeholder="Contoh: 123e4567-e89b-12d3-a456-426614174000"
                                 value={divisi}
                                 onChangeText={setDivisi}
                                 icon={<Key />}
                             />
-                            <Text className='text-center text-light_grey mb-4'>
-                                Format Kode Ruang: XXXX-1234-XXXX-5678
-                            </Text>
                             <Button
                                 text="Menuju Ruang"
                                 onPress={() => navigation.navigate('SpaceMain' as never)}

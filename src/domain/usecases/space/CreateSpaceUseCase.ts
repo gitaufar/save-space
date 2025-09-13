@@ -8,7 +8,6 @@ interface CreateSpaceRequest {
   job_desc?: string;
   work_hours?: string;
   work_culture?: string;
-  invitation_code: string;
 }
 
 export class CreateSpaceUseCase {

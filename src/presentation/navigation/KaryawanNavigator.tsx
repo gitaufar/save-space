@@ -1,40 +1,36 @@
 import React from "react";
-import { View } from "react-native";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import PengaturanKaryawanScreen from '../screens/karyawan/PengaturanKaryawanScreen';
+import { NavbarKaryawan } from '../components/karyawan/Beranda/NavbarKaryawan';
+import DashboardKaryawanScreen from '../screens/karyawan/DashboardKaryawanScreen';
+import DetailRiwayatMoodScreen from '../screens/karyawan/DetailRiwayatMoodScreen';
 
-// import screen kamu
-// import HomeScreen from "../screens/karyawan/HomeScreen";
-// import DetailScreen from "../screens/karyawan/DetailScreen";
-// import ProfileScreen from "../screens/karyawan/ProfileScreen";
+const Tab = createBottomTabNavigator();
+const Stack = createNativeStackNavigator();
 
+// Tab Navigator untuk navigasi utama dengan tab bar
+function MainTabNavigator() {
+  return (
+    <Tab.Navigator
+      tabBar={props => <NavbarKaryawan {...props} />}
+      screenOptions={{ headerShown: false }}
+    >
+      <Tab.Screen name="DashboardKaryawan" component={DashboardKaryawanScreen} />
+      <Tab.Screen name="PengaturanKaryawan" component={PengaturanKaryawanScreen} />
+    </Tab.Navigator>
+  );
+}
 
-
-// 🔹 Stack khusus untuk Home
-// function HomeStackNavigator() {
-//   return (
-//     <HomeStack.Navigator screenOptions={{ headerShown: false }}>
-//       <HomeStack.Screen name="HomeMain" component={HomeScreen} />
-//       <HomeStack.Screen name="Detail" component={DetailScreen} />
-//     </HomeStack.Navigator>
-//   );
-// }
-
-// 🔹 Bottom Tabs
+// Stack Navigator utama yang berisi TabNavigator dan screen lainnya
 export default function KaryawanNavigator() {
   return (
-    <View />
-    // <Tab.Navigator
-    //   screenOptions={({ route }) => ({
-    //     headerShown: false,
-    //     tabBarIcon: ({ color, size }) => {
-    //       let iconName: string = "home";
-    //       if (route.name === "Home") iconName = "home";
-    //       if (route.name === "Profile") iconName = "person";
-    //       return <Icon name={iconName} size={size} color={color} />;
-    //     },
-    //   })}
-    // >
-    //   <Tab.Screen name="Home" component={HomeStackNavigator} />
-    //   <Tab.Screen name="Profile" component={ProfileScreen} />
-    // </Tab.Navigator>
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      {/* Tab Navigator sebagai screen pertama */}
+      <Stack.Screen name="MainTab" component={MainTabNavigator} />
+      
+      {/* Screen lain yang tidak menampilkan tab bar */}
+      <Stack.Screen name="DetailRiwayatMoodScreen" component={DetailRiwayatMoodScreen} />
+    </Stack.Navigator>
   );
 }

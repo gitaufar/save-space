@@ -332,5 +332,29 @@ async getMoodResponsesLast7Days(userId: string) {
     return result;
   }
 
-  // ===  ===
+  // === CBI TEST ===
+    async getCBITestByEmployee(employeeId: string) {
+    const { data, error } = await supabase
+      .from('cbitest')
+      .select('*')
+      .eq('employee_id', employeeId)
+      .order('created_at', { ascending: false }) // biar urut dari terbaru
+      .limit(1)
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
+
+  async markCBITestAsFinished(id: string) {
+    const { data, error } = await supabase
+      .from('cbitest')
+      .update({ finished: true })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
 }

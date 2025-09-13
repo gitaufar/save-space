@@ -73,66 +73,66 @@ export default function InviteSpaceScreen() {
                             </TextField>
                         </View>
 
-                        <View className="bg-white rounded-2xl p-8 border border-[#E5E7EB]">
-                            <View className="flex items-center justify-center mb-4">
-                                <View className="bg-[#FFB74D]/20 p-3 rounded-xl w-fit   ">
-                                    <InvitationKey width={24} height={24} />
+                            <View className="bg-white rounded-2xl p-8 border border-[#E5E7EB]">
+                                <View className="flex items-center justify-center mb-4">
+                                    <View className="bg-[#FFB74D]/20 p-3 rounded-xl w-fit   ">
+                                        <InvitationKey width={24} height={24} />
+                                    </View>
                                 </View>
-                            </View>
-                            <Text className="text-center text-[18px] font-bold text-[#1F2937] pb-4">
-                                Kode Undangan
-                            </Text>
-                            <Text className='text-center text-light_grey mb-10'>
-                                Berikut adalah invitation code untuk karyawan Anda
-                            </Text>
-                            <Text className='text-center text-light_grey mb-2'>
-                                Kode Undangan
-                            </Text>
-                            <Text className='text-center text-[22px] font-extrabold text-primary mb-4'>
-                                ABCD-1234-EFGH-5678
-                            </Text>
-                            <TouchableOpacity className='flex-row items-center justify-center gap-2 mb-10'>
-                                <Copy size={16} color="#00BFA6" />
-                                <Text className='text-center text-primary font-semibold'>
-                                    Salin Kode
+                                <Text className="text-center text-[18px] font-bold text-[#1F2937] pb-4">
+                                    Kode Undangan
                                 </Text>
-                            </TouchableOpacity>
+                                <Text className='text-center text-light_grey mb-10'>
+                                    Berikut adalah invitation code untuk karyawan Anda
+                                </Text>
+                                <Text className='text-center text-light_grey mb-2'>
+                                    Kode Undangan
+                                </Text>
+                                <Text className='text-center text-[22px] font-extrabold text-primary mb-4'>
+                                    ABCD-1234-EFGH-5678
+                                </Text>
+                                <TouchableOpacity className='flex-row items-center justify-center gap-2 mb-10'>
+                                    <Copy size={16} color="#00BFA6" />
+                                    <Text className='text-center text-primary font-semibold'>
+                                        Salin Kode
+                                    </Text>
+                                </TouchableOpacity>
 
-                            <View className="bg-primary/5 rounded-xl p-8">
-                                <Text className="text-[16px] font-bold text-gray-800 mb-4">
-                                    Cara Menggunakan:
-                                </Text>
-                                
-                                <View className="gap-4">
-                                    <View className="flex-row items-start">
-                                        <View className="bg-primary w-6 h-6 rounded-full items-center justify-center mr-2">
-                                            <Text className="text-white font-bold">1</Text>
-                                        </View>
-                                        <Text className="text-gray-600 flex-1">
-                                            Bagikan kode ini kepada karyawan
-                                        </Text>
-                                    </View>
+                                <View className="bg-primary/5 rounded-xl p-8">
+                                    <Text className="text-[16px] font-bold text-gray-800 mb-4">
+                                        Cara Menggunakan:
+                                    </Text>
                                     
-                                    <View className="flex-row items-start">
-                                        <View className="bg-primary w-6 h-6 rounded-full items-center justify-center mr-2">
-                                            <Text className="text-white font-bold">2</Text>
+                                    <View className="gap-4">
+                                        <View className="flex-row items-start">
+                                            <View className="bg-primary w-6 h-6 rounded-full items-center justify-center mr-2">
+                                                <Text className="text-white font-bold">1</Text>
+                                            </View>
+                                            <Text className="text-gray-600 flex-1">
+                                                Bagikan kode ini kepada karyawan
+                                            </Text>
                                         </View>
-                                        <Text className="text-gray-600 flex-1">
-                                            Karyawan memasukkan kode di aplikasi
-                                        </Text>
-                                    </View>
-                                    
-                                    <View className="flex-row items-start">
-                                        <View className="bg-primary w-6 h-6 rounded-full items-center justify-center mr-2">
-                                            <Text className="text-white font-bold">3</Text>
+                                        
+                                        <View className="flex-row items-start">
+                                            <View className="bg-primary w-6 h-6 rounded-full items-center justify-center mr-2">
+                                                <Text className="text-white font-bold">2</Text>
+                                            </View>
+                                            <Text className="text-gray-600 flex-1">
+                                                Karyawan memasukkan kode di aplikasi
+                                            </Text>
                                         </View>
-                                        <Text className="text-gray-600 flex-1">
-                                            Mulai monitoring kesehatan mental tim
-                                        </Text>
+                                        
+                                        <View className="flex-row items-start">
+                                            <View className="bg-primary w-6 h-6 rounded-full items-center justify-center mr-2">
+                                                <Text className="text-white font-bold">3</Text>
+                                            </View>
+                                            <Text className="text-gray-600 flex-1">
+                                                Mulai monitoring kesehatan mental tim
+                                            </Text>
+                                        </View>
                                     </View>
                                 </View>
                             </View>
-                        </View>
                         <Button
                                 text="Menuju Ruang"
                                 onPress={() => navigation.navigate('SpaceMain' as never)}

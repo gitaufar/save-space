@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, ScrollView } from "react-native"; // Tambahkan ScrollView
+import { View, Text, TouchableOpacity, ScrollView, Alert } from "react-native"; // Tambahkan ScrollView
 import React, { useState } from "react";
 import SpaceHeader from "../../components/space/headerSpace";
 import Logo from '../../../assets/space/old_space.svg';
@@ -8,10 +8,15 @@ import { TextField } from "../../components/common/TextField";
 import Key from "../../../assets/space/key.svg";
 import { Button } from "../../components/common/Button";
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import { useAuth } from "../../contexts/AuthContext";
+import { SpaceRepositoryImpl } from "../../../data/repositories/SpaceRepositoryImpl";
+import { JoinSpaceByCodeUseCase } from "../../../domain/usecases/space/JoinSpaceByCodeUseCase";
 
 export default function OldSpaceScreen() {
     const navigation = useNavigation();
-    const [divisi, setDivisi] = useState('');
+    const { user, fetchCurrentUser } = useAuth();
+    const [spaceCode, setSpaceCode] = useState('');
+    const [loading, setLoading] = useState(false);
 
     const handleGoBack = () => {
         navigation.goBack();
@@ -47,13 +52,35 @@ export default function OldSpaceScreen() {
                             <TextField
                                 label="ID Ruang"
                                 placeholder="Contoh: 123e4567-e89b-12d3-a456-426614174000"
-                                value={divisi}
-                                onChangeText={setDivisi}
+                                value={spaceCode}
+                                onChangeText={setSpaceCode}
                                 icon={<Key />}
                             />
                             <Button
-                                text="Menuju Ruang"
-                                onPress={() => navigation.navigate('SpaceMain' as never)}
+                                text={loading ? "Memproses..." : "Menuju Ruang"}
+                                onPress={async () => {
+                                  const code = spaceCode.trim();
+                                  if (!code) {
+                                    Alert.alert('Validasi', 'Mohon masukkan ID ruang yang valid.');
+                                    return;
+                                  }
+                                  if (!user?.id) {
+                                    Alert.alert('Error', 'User belum terautentikasi. Silakan login kembali.');
+                                    return;
+                                  }
+                                  setLoading(true);
+                                  try {
+                                    const repo = new SpaceRepositoryImpl();
+                                    const joinUseCase = new JoinSpaceByCodeUseCase(repo);
+                                    await joinUseCase.execute(user.id, code);
+                                    // refresh user so AppNavigator navigates to dashboard
+                                    await fetchCurrentUser();
+                                  } catch (e: any) {
+                                    Alert.alert('Gagal Bergabung', e?.message || 'Kode ruang tidak ditemukan');
+                                  } finally {
+                                    setLoading(false);
+                                  }
+                                }}
                                 margin="mt-8"
                                 rounded="rounded-xl"
                             />

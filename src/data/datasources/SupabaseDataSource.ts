@@ -130,46 +130,45 @@ export class SupabaseDataSource {
     return true;
   }
 
-async uploadAvatar(userId: string, file: File) {
-  // kasih nama file unik
-  const fileExt = file.name.split(".").pop();
-  const fileName = `${userId}-${Date.now()}.${fileExt}`;
-  const filePath = `avatars/${fileName}`;
+  async uploadAvatar(userId: string, file: File) {
+    // kasih nama file unik
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${userId}-${Date.now()}.${fileExt}`;
+    const filePath = `avatars/${fileName}`;
 
-  // upload ke bucket "avatars"
-  const { error } = await supabase.storage
-    .from("avatars")
-    .upload(filePath, file, {
-      cacheControl: "3600",
-      upsert: false, // kalau true, bisa overwrite file dengan nama sama
-    });
+    // upload ke bucket "avatars"
+    const { error } = await supabase.storage
+      .from('avatars')
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false, // kalau true, bisa overwrite file dengan nama sama
+      });
 
-  if (error) throw error;
+    if (error) throw error;
 
-  // ambil public url
-  const { data } = supabase.storage.from("avatars").getPublicUrl(filePath);
+    // ambil public url
+    const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
 
-  if (!data || !data.publicURL) {
-    throw new Error("Failed to get public URL for avatar.");
+    if (!data || !data.publicURL) {
+      throw new Error('Failed to get public URL for avatar.');
+    }
+
+    return data.publicURL; // ini bisa disimpan ke tabel users
   }
 
-  return data.publicURL; // ini bisa disimpan ke tabel users
-}
+  async updateUserAvatar(userId: string, file: File) {
+    const avatarUrl = await this.uploadAvatar(userId, file);
 
-async updateUserAvatar(userId: string, file: File) {
-  const avatarUrl = await this.uploadAvatar(userId, file);
+    const { data, error } = await supabase
+      .from('users')
+      .update({ avatar_url: avatarUrl }) // tambahin kolom avatar_url di tabel users
+      .eq('id', userId)
+      .select()
+      .single();
 
-  const { data, error } = await supabase
-    .from("users")
-    .update({ avatar_url: avatarUrl }) // tambahin kolom avatar_url di tabel users
-    .eq("id", userId)
-    .select()
-    .single();
-
-  if (error) throw error;
-  return data;
-}
-
+    if (error) throw error;
+    return data;
+  }
 
   // ==== MOOD RESPONSES ====
 async getMoodResponsesLast7Days(userId: string) {
@@ -293,11 +292,15 @@ async getMoodResponsesLast7Days(userId: string) {
     return true;
   }
 
-  async getLatestAIInsightByEmployee(employeeId: string) {
+  async getLatestAIInsightByEmployeeToday(employeeId: string) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // awal hari
+
     const { data, error } = await supabase
       .from('ai_insights')
       .select('*')
       .eq('employee_id', employeeId)
+      .gte('created_at', today.toISOString()) // hanya ambil yg created hari ini
       .order('created_at', { ascending: false })
       .limit(1)
       .single();

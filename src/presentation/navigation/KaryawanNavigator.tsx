@@ -8,17 +8,20 @@ import { View } from "react-native";
 
 
 
-// 🔹 Stack khusus untuk Home
-// function HomeStackNavigator() {
-//   return (
-//     <HomeStack.Navigator screenOptions={{ headerShown: false }}>
-//       <HomeStack.Screen name="HomeMain" component={HomeScreen} />
-//       <HomeStack.Screen name="Detail" component={DetailScreen} />
-//     </HomeStack.Navigator>
-//   );
-// }
+// Tab Navigator untuk navigasi utama dengan tab bar
+function MainTabNavigator() {
+  return (
+    <Tab.Navigator
+      tabBar={props => <NavbarKaryawan {...props} />}
+      screenOptions={{ headerShown: false }}
+    >
+      <Tab.Screen name="DashboardKaryawan" component={DashboardKaryawanScreen} />
+      <Tab.Screen name="PengaturanKaryawan" component={PengaturanKaryawanScreen} />
+    </Tab.Navigator>
+  );
+}
 
-// 🔹 Bottom Tabs
+// Stack Navigator utama yang berisi TabNavigator dan screen lainnya
 export default function KaryawanNavigator() {
   return (
     <View />

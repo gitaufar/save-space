@@ -14,7 +14,7 @@ type AuthNav = NativeStackNavigationProp<AuthStackParamList, 'Register'>;
 export default function RegisterScreen() {
   const navigation = useNavigation<AuthNav>();
 
-  const handleRegister = (role: 'manager' | 'karyawan') => {
+  const handleRegister = (role: 'Manager' | 'Karyawan') => {
     navigation.navigate('RegisterStep', { role });
   };
 
@@ -29,22 +29,22 @@ export default function RegisterScreen() {
         <Header title="Save Space" desc="Pilih peran anda untuk melanjutkan" />
         <Logo width={300} height={300} />
         <View className="flex flex-col gap-4">
-          <Pressable onPress={() => handleRegister('manager')}>
+          <Pressable onPress={() => handleRegister('Manager')}>
             <RoleCard
               title="Daftar sebagai Manager"
               bgIconColor="bg-primary"
               icon={<Icon name="person" size={24} color="white" />}
               desc="Kelola karyawan dan analisis burnout"
-              onPress={() => handleRegister('manager')}
+              onPress={() => handleRegister('Manager')}
             />
           </Pressable>
-          <Pressable onPress={() => handleRegister('karyawan')}>
+          <Pressable onPress={() => handleRegister('Karyawan')}>
             <RoleCard
               title="Daftar sebagai Karyawan"
               bgIconColor="bg-[#FFB74D]"
               icon={<Icon name="person" size={24} color="white" />}
               desc="Pantau kesehatan mental anda"
-              onPress={() => handleRegister('karyawan')}
+              onPress={() => handleRegister('Karyawan')}
             />
           </Pressable>
         </View>

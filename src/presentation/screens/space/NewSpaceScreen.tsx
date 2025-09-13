@@ -36,7 +36,7 @@ export default function NewSpaceScreen() {
         work_culture: budayaKerja || null as any,
       } as any);
       const token = space.id;
-      navigation.navigate('InviteCode' as never, { token } as never);
+      navigation.navigate({ token } as never);
     } catch (e: any) {
       console.log('Create space error:', e);
       Alert.alert('Gagal membuat ruang', e?.message || 'Terjadi kesalahan');

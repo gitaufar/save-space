@@ -18,6 +18,26 @@ const MyTheme = {
 };
 
 export default function AppNavigator() {
+  const [isFirstLaunch, setIsFirstLaunch] = useState<boolean | null>(null);
+  const { user, fetchCurrentUser } = useAuth();
+
+  useEffect(() => {
+    AsyncStorage.getItem("alreadyLaunched").then((value) => {
+      if (value == null) {
+        AsyncStorage.setItem("alreadyLaunched", "true");
+        setIsFirstLaunch(true);
+      } else {
+        setIsFirstLaunch(false);
+      }
+    });
+
+    fetchCurrentUser(); // ambil session user dari supabase / storage
+  }, [fetchCurrentUser]);
+
+  if (isFirstLaunch === null) {
+    return null; // splash screen bisa disini
+  }
+
   return (
     <NavigationContainer theme={MyTheme}>
       {isFirstLaunch ? (
@@ -34,38 +54,3 @@ export default function AppNavigator() {
     </NavigationContainer>
   );
 }
-// export default function AppNavigator() {
-//   const [isFirstLaunch, setIsFirstLaunch] = useState<boolean | null>(null);
-//   const { user, fetchCurrentUser } = useAuth();
-
-//   useEffect(() => {
-//     AsyncStorage.getItem("alreadyLaunched").then((value) => {
-//       if (value == null) {
-//         AsyncStorage.setItem("alreadyLaunched", "true");
-//         setIsFirstLaunch(true);
-//       } else {
-//         setIsFirstLaunch(false);
-//       }
-//     });
-
-//     fetchCurrentUser(); // ambil session user dari supabase / storage
-//   }, [fetchCurrentUser]);
-
-//   if (isFirstLaunch === null) {
-//     return null; // splash screen bisa disini
-//   }
-
-//   return (
-//     <NavigationContainer theme={MyTheme}>
-//       {isFirstLaunch ? (
-//         <OnBoardingNavigation />
-//       ) : !user ? (
-//         <AuthNavigator />
-//       ) : user.role === "Karyawan" ? (
-//         <KaryawanNavigator />
-//       ) : (
-//         <HrdNavigator />
-//       )}
-//     </NavigationContainer>
-//   );
-// }

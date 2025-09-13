@@ -5,7 +5,6 @@ export interface Space {
   job_desc: string | null;
   work_hours: string | null;
   work_culture: string | null;
-  invitation_code: string;
   created_at: Date;
   updated_at: Date;
 }

@@ -29,9 +29,6 @@ export default function OldSpaceScreen() {
                 {/* <ChevronLeft size={24} color="#333" /> */}
                 <MaterialIcons name="arrow-back" size={24} color="#333" />
             </TouchableOpacity>
-
-            <View className="w-full items-center pt-32">
-            </View>
             
             <ScrollView className="flex-1 pt-32 px-5" showsVerticalScrollIndicator={false}>
                 <View className="w-full items-center">

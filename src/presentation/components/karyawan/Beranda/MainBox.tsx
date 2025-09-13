@@ -1,6 +1,7 @@
 import React from "react";
-import { View, Text } from "react-native";
+import { View, Text, TouchableOpacity } from "react-native";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
+import { useNavigation } from '@react-navigation/native';
 
 // Definisikan enum untuk tipe box
 export enum MainBoxType {
@@ -28,13 +29,19 @@ export const MainBox = ({
   type,
   minHeight = 180, // Default 180px (h-48 equivalent)
 }: MainBoxProps) => {
+  const navigation = useNavigation<any>();
   // Base styling yang digunakan oleh semua container
   const baseStyle = {
     minHeight,
     padding: 32, // p-8
   };
 
-  // “Button” non-klik khusus untuk MOOD_CHECK dan CBI_TEST
+  // Handle navigasi ke CBITestScreen
+  const handleCBITestNavigation = () => {
+    navigation.navigate('CBITestScreen');
+  };
+
+  // "Button" non-klik khusus untuk MOOD_CHECK dan CBI_TEST
   const renderAction = () => {
     if (type === MainBoxType.MOOD_CHECK) {
       return (
@@ -46,10 +53,13 @@ export const MainBox = ({
     }
     if (type === MainBoxType.CBI_TEST) {
       return (
-        <View className="mt-3 self-start flex-row items-center bg-[#E5E7EB]/50 px-6 py-4 rounded-xl">
+        <TouchableOpacity 
+          className="mt-3 self-start flex-row items-center bg-[#E5E7EB]/50 px-6 py-4 rounded-xl"
+          onPress={handleCBITestNavigation}
+        >
           <Text className="text-[13px] text-[#1E293B] mr-1">Mulai Tes CBI</Text>
           <MaterialIcons name="edit" size={16} color="#1E293B" />
-        </View>
+        </TouchableOpacity>
       );
     }
     return null;

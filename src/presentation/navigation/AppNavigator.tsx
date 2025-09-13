@@ -45,8 +45,13 @@ export default function AppNavigator() {
       ) : !user ? (
         <AuthNavigator />
       ) : !user.space_id ? (
-        user.role === "Manager" ? <SpaceNavigator initialRouteName="Space"/> : <SpaceNavigator initialRouteName="OldSpace"/>
+        user.role === "Manager" ? (
+          <SpaceNavigator initialRouteName="Space"/>
+        ) : (
+          <SpaceNavigator initialRouteName="OldSpace"/>
+        )
       ) : user.role === "Karyawan" ? (
+        // Setelah login atau join/create space, langsung ke dashboard karyawan
         <KaryawanNavigator />
       ) : (
         <HrdNavigator />

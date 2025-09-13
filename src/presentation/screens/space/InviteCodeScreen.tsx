@@ -6,6 +6,7 @@ import { SpaceStackParamList } from '../../navigation/SpaceNavigator';
 import InvitationKey from '../../../assets/space/invitation_key.svg';
 import { Copy } from 'lucide-react-native';
 import { Button } from '../../components/common/Button';
+import { useAuth } from '../../contexts/AuthContext';
 
 type Nav = NativeStackNavigationProp<SpaceStackParamList, 'InviteCode'>;
 
@@ -13,6 +14,7 @@ export default function InviteCodeScreen() {
   const navigation = useNavigation<Nav>();
   const route = useRoute();
   const { token } = route.params as { token: string; };
+  const { fetchCurrentUser } = useAuth();
   const displayToken = useMemo(() => {
     const raw = String(token || '');
     // If already a UUID (8-4-4-4-12), show as-is
@@ -86,7 +88,11 @@ export default function InviteCodeScreen() {
 
         <Button
           text="Selesai"
-          onPress={() => navigation.navigate('Space')}
+          onPress={async () => {
+            try {
+              await fetchCurrentUser();
+            } catch {}
+          }}
           margin="mt-8"
           rounded="rounded-xl"
         />

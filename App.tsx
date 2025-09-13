@@ -17,26 +17,18 @@ const loginUseCase = new LoginUseCase(authRepository);
 const registerUseCase = new RegisterUseCase(authRepository);
 const fetchCurrentUserUseCase = new FetchCurrentUserUseCase(authRepository);
 const logoutUseCase = new LogoutUseCase(authRepository);
-
-const MyTheme = {
-  ...DefaultTheme,
-  colors: {
-    ...DefaultTheme.colors,
-    background: "[#FAFAFA]",
-  },
-};
-export default function App() {
-  return <AppNavigator />;
-};
 // export default function App() {
-//   return (
-//     <AuthProvider
-//       signUpUseCase={registerUseCase}
-//       signInUseCase={loginUseCase}
-//       signOutUseCase={logoutUseCase}
-//       fetchCurrentUserUseCase={fetchCurrentUserUseCase}
-//     >
-//       <AppNavigator />
-//     </AuthProvider>
-//   );
-// }
+//   return <AppNavigator />;
+// };
+export default function App() {
+  return (
+    <AuthProvider
+      signUpUseCase={registerUseCase}
+      signInUseCase={loginUseCase}
+      signOutUseCase={logoutUseCase}
+      fetchCurrentUserUseCase={fetchCurrentUserUseCase}
+    >
+      <AppNavigator />
+    </AuthProvider>
+  );
+}

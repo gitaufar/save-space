@@ -18,7 +18,6 @@ interface SpaceContextProps {
     job_desc?: string;
     work_hours?: string;
     work_culture?: string;
-    invitation_code: string;
   }) => Promise<Space>;
   joinSpace: (userId: string, code: string) => Promise<User>;
 }

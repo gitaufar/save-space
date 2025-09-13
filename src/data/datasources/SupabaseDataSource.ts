@@ -8,16 +8,26 @@ export class SupabaseDataSource {
     job_desc?: string;
     work_hours?: string;
     work_culture?: string;
-    invitation_code: string;
   }) {
-    const { data: result, error } = await supabase
+    const insertPayload: any = { ...data };
+    const { data: insertedRows, error } = await supabase
       .from('spaces')
-      .insert([data])
-      .select()
-      .single();
+      .insert([insertPayload], { returning: 'representation' as any });
 
     if (error) throw error;
-    return result;
+    const space = (insertedRows as any[])?.[0];
+
+    // Set current user's app_users.space_id to this space id
+    const authUser = supabase.auth.user();
+    if (authUser?.id && space?.id) {
+      const { error: linkErr } = await supabase
+        .from('app_users')
+        .update({ space_id: space.id })
+        .eq('id', authUser.id);
+      if (linkErr) throw linkErr;
+    }
+
+    return space;
   }
 
   async getSpaces() {
@@ -54,11 +64,11 @@ export class SupabaseDataSource {
   }
 
   async joinSpaceByInvitationCode(userId: string, code: string) {
-    // cari space berdasarkan invitation_code
+    // cari space berdasarkan ID (bukan invitation_code)
     const { data: space, error: spaceError } = await supabase
       .from('spaces')
       .select('id')
-      .eq('invitation_code', code)
+      .eq('id', code)
       .single();
 
     if (spaceError) throw spaceError;
@@ -66,7 +76,7 @@ export class SupabaseDataSource {
 
     // update user dengan space_id
     const { data: user, error: userError } = await supabase
-      .from('users')
+      .from('app_users')
       .update({ space_id: space.id })
       .eq('id', userId)
       .select()

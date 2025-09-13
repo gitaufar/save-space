@@ -20,7 +20,6 @@ export function useSpaceViewModel(
     job_desc?: string;
     work_hours?: string;
     work_culture?: string;
-    invitation_code: string;
   }) {
     try {
       setLoading(true);

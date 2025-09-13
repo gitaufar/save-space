@@ -1,146 +1,76 @@
-import { View, Text, TouchableOpacity, ScrollView } from "react-native"; // Tambahkan ScrollView
-import React, { useState } from "react";
-import SpaceHeader from "../../components/space/headerSpace";
+import { View, Text, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import React, { useState } from 'react';
+import SpaceHeader from '../../components/space/headerSpace';
 import Logo from '../../../assets/space/new_space.svg';
-import { ChevronLeft, Building, Copy } from "lucide-react-native";
-import { useNavigation } from "@react-navigation/native";
-import { TextField } from "../../components/common/TextField";
-import InvitationKey from '../../../assets/space/invitation_key.svg';
+import { ChevronLeft } from 'lucide-react-native';
+import { useNavigation } from '@react-navigation/native';
+import { TextField } from '../../components/common/TextField';
 import Division from '../../../assets/space/division.svg';
-import { Button } from "../../components/common/Button";
+import { Button } from '../../components/common/Button';
+import { SpaceRepositoryImpl } from '../../../data/repositories/SpaceRepositoryImpl';
+import { CreateSpaceUseCase } from '../../../domain/usecases/space/CreateSpaceUseCase';
 
-export default function InviteSpaceScreen() {
-    const navigation = useNavigation();
-    const [divisi, setDivisi] = useState('');
-    const [deskripsi, setDeskripsi] = useState('');
-    const [budayaKerja, setBudayaKerja] = useState('');
-    const [jamKerja, setJamKerja] = useState('');
+export default function NewSpaceScreen() {
+  const navigation = useNavigation();
+  const [name, setName] = useState('');
+  const [divisi, setDivisi] = useState('');
+  const [deskripsi, setDeskripsi] = useState('');
+  const [budayaKerja, setBudayaKerja] = useState('');
+  const [jamKerja, setJamKerja] = useState('');
+  const [loading, setLoading] = useState(false);
 
-    const handleGoBack = () => {
-        navigation.goBack();
-    };
+  const repo = new SpaceRepositoryImpl();
+  const createSpaceUseCase = new CreateSpaceUseCase(repo);
 
-    return (
-        <View className="flex-1 bg-[#FAFAFA]">
-            <TouchableOpacity
-                className="absolute top-12 left-8 z-10"
-                onPress={handleGoBack}
-            >
-                <ChevronLeft size={24} color="#333" />
-            </TouchableOpacity>
+  const handleGoBack = () => navigation.goBack();
 
-            <View className="w-full items-center pt-32">
-                <SpaceHeader
-                    title="Undangan Ruang Kerja"
-                    desc="Kelola tim Anda dengan mudah"
-                    logo={<Logo />}
-                />
+  const handleCreate = async () => {
+    if (!name.trim()) return;
+    try {
+      setLoading(true);
+      const space = await createSpaceUseCase.execute({
+        name: name.trim(),
+        division: divisi || null as any,
+        job_desc: deskripsi || null as any,
+        work_hours: jamKerja || null as any,
+        work_culture: budayaKerja || null as any,
+      } as any);
+      const token = space.id;
+      navigation.navigate('InviteCode' as never, { token } as never);
+    } catch (e: any) {
+      console.log('Create space error:', e);
+      Alert.alert('Gagal membuat ruang', e?.message || 'Terjadi kesalahan');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <View className="flex-1 bg-[#FAFAFA]">
+      <TouchableOpacity className="absolute z-10 top-12 left-8" onPress={handleGoBack}>
+        <ChevronLeft size={24} color="#333" />
+      </TouchableOpacity>
+
+      <View className="items-center w-full pt-32">
+        <SpaceHeader title="Buat Ruang Kerja" desc="Kelola tim Anda dengan mudah" logo={<Logo />} />
+      </View>
+
+      <ScrollView className="flex-1 px-5" showsVerticalScrollIndicator={false}>
+        <View className="mb-8">
+          <View className="justify-center gap-8 pb-20 mt-10">
+            <View className="bg-white rounded-2xl p-8 border border-[#E5E7EB]">
+              <Text className="text-left text-[18px] font-bold text-[#1F2937] pb-10">Informasi Ruang</Text>
+              <TextField label="Nama Ruang" placeholder="Contoh: Tim HRD" value={name} onChangeText={setName} />
+              <TextField label="Divisi" placeholder="Contoh: Human Resources" value={divisi} onChangeText={setDivisi} icon={<Division />} />
+              <TextField label="Deskripsi Pekerjaan" placeholder="Deskripsi pekerjaan dan tanggung jawab" value={deskripsi} onChangeText={setDeskripsi} />
+              <TextField label="Jam Kerja" placeholder="Contoh : 08:00 - 17:00" value={jamKerja} onChangeText={setJamKerja} />
+              <TextField label="Budaya Kerja" placeholder="Jelaskan budaya kerja di perusahaan" value={budayaKerja} onChangeText={setBudayaKerja} />
             </View>
-            
-            <ScrollView className="flex-1 px-5" showsVerticalScrollIndicator={false}>
-                <View className="mb-8">
-                    <View className="mt-10 justify-center gap-8 pb-20">
-                        <View className="bg-white rounded-2xl p-8 border border-[#E5E7EB]">
-                            <Text className="text-left text-[18px] font-bold text-[#1F2937] pb-10">
-                                Informasi Ruang 
-                            </Text>
-                            <TextField
-                                label="Divisi"
-                                placeholder="Contoh: Human Resources"
-                                value={divisi}
-                                onChangeText={setDivisi}
-                                icon={<Division />}
-                            />
-                            <TextField
-                                label="Deskripsi Pekerjaan"
-                                placeholder="Deskripsi pekerjaan dan tanggung jawab"
-                                value={deskripsi}
-                                onChangeText={setDeskripsi}
-                            ></TextField>
-                            <TextField
-                                label="Jam Kerja"
-                                placeholder="Contoh : 08:00 - 17:00"
-                                value={jamKerja}
-                                onChangeText={setJamKerja}
-                            ></TextField>
-                            <TextField
-                                label="Budaya Kerja"
-                                placeholder="Jelaskan budaya kerja di perusahaan"
-                                value={budayaKerja}
-                                onChangeText={setBudayaKerja}
-                            >
-                            </TextField>
-                        </View>
 
-                        <View className="bg-white rounded-2xl p-8 border border-[#E5E7EB]">
-                            <View className="flex items-center justify-center mb-4">
-                                <View className="bg-[#FFB74D]/20 p-3 rounded-xl w-fit   ">
-                                    <InvitationKey width={24} height={24} />
-                                </View>
-                            </View>
-                            <Text className="text-center text-[18px] font-bold text-[#1F2937] pb-4">
-                                Kode Undangan
-                            </Text>
-                            <Text className='text-center text-light_grey mb-10'>
-                                Berikut adalah invitation code untuk karyawan Anda
-                            </Text>
-                            <Text className='text-center text-light_grey mb-2'>
-                                Kode Undangan
-                            </Text>
-                            <Text className='text-center text-[22px] font-extrabold text-primary mb-4'>
-                                ABCD-1234-EFGH-5678
-                            </Text>
-                            <TouchableOpacity className='flex-row items-center justify-center gap-2 mb-10'>
-                                <Copy size={16} color="#00BFA6" />
-                                <Text className='text-center text-primary font-semibold'>
-                                    Salin Kode
-                                </Text>
-                            </TouchableOpacity>
-
-                            <View className="bg-primary/5 rounded-xl p-8">
-                                <Text className="text-[16px] font-bold text-gray-800 mb-4">
-                                    Cara Menggunakan:
-                                </Text>
-                                
-                                <View className="gap-4">
-                                    <View className="flex-row items-start">
-                                        <View className="bg-primary w-6 h-6 rounded-full items-center justify-center mr-2">
-                                            <Text className="text-white font-bold">1</Text>
-                                        </View>
-                                        <Text className="text-gray-600 flex-1">
-                                            Bagikan kode ini kepada karyawan
-                                        </Text>
-                                    </View>
-                                    
-                                    <View className="flex-row items-start">
-                                        <View className="bg-primary w-6 h-6 rounded-full items-center justify-center mr-2">
-                                            <Text className="text-white font-bold">2</Text>
-                                        </View>
-                                        <Text className="text-gray-600 flex-1">
-                                            Karyawan memasukkan kode di aplikasi
-                                        </Text>
-                                    </View>
-                                    
-                                    <View className="flex-row items-start">
-                                        <View className="bg-primary w-6 h-6 rounded-full items-center justify-center mr-2">
-                                            <Text className="text-white font-bold">3</Text>
-                                        </View>
-                                        <Text className="text-gray-600 flex-1">
-                                            Mulai monitoring kesehatan mental tim
-                                        </Text>
-                                    </View>
-                                </View>
-                            </View>
-                        </View>
-                        <Button
-                                text="Menuju Ruang"
-                                onPress={() => navigation.navigate('SpaceMain' as never)}
-                                margin="mt-8"
-                                rounded="rounded-xl"
-                            />
-                    </View>
-                </View>
-            </ScrollView>
+            <Button text="Buat" onPress={handleCreate} margin="mt-8" rounded="rounded-xl" loading={loading} />
+          </View>
         </View>
-    );
+      </ScrollView>
+    </View>
+  );
 }

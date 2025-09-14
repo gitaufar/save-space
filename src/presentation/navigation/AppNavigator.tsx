@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { NavigationContainer, DefaultTheme } from "@react-navigation/native";
-
 import OnBoardingNavigation from "./OnBoardingNavigation";
 import AuthNavigator from "./AuthNavigator";
 import KaryawanNavigator from "./KaryawanNavigator";
-import HrdNavigator from "./HrdNavigator";
+import ManagerNavigator from "./ManagerNavigator";
 import { useAuth } from "../contexts/AuthContext";
 import SpaceNavigator from "./SpaceNavigator";
 
@@ -45,11 +44,16 @@ export default function AppNavigator() {
       ) : !user ? (
         <AuthNavigator />
       ) : !user.space_id ? (
-        user.role === "Manager" ? <SpaceNavigator initialRouteName="Space"/> : <SpaceNavigator initialRouteName="OldSpace"/>
+        user.role === "Manager" ? (
+          <SpaceNavigator initialRouteName="Space"/>
+        ) : (
+          <SpaceNavigator initialRouteName="OldSpace"/>
+        )
       ) : user.role === "Karyawan" ? (
+        // Setelah login atau join/create space, langsung ke dashboard karyawan
         <KaryawanNavigator />
       ) : (
-        <HrdNavigator />
+        <ManagerNavigator />
       )}
     </NavigationContainer>
   );

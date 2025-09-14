@@ -10,6 +10,7 @@ import { FetchCurrentUserUseCase } from "./src/domain/usecases/auth/FetchCurrent
 import { LogoutUseCase } from "./src/domain/usecases/auth/LogoutUseCase";
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import KaryawanNavigator from './src/presentation/navigation/KaryawanNavigator';
+import DashboardHRD from "./src/presentation/screens/manager/DashboardManager";
 
 const dataSource = new AuthDataSource();
 const authRepository = new AuthRepositoryImpl(dataSource);
@@ -17,26 +18,15 @@ const loginUseCase = new LoginUseCase(authRepository);
 const registerUseCase = new RegisterUseCase(authRepository);
 const fetchCurrentUserUseCase = new FetchCurrentUserUseCase(authRepository);
 const logoutUseCase = new LogoutUseCase(authRepository);
-
-const MyTheme = {
-  ...DefaultTheme,
-  colors: {
-    ...DefaultTheme.colors,
-    background: "[#FAFAFA]",
-  },
-};
 export default function App() {
-  return <AppNavigator />;
-};
-// export default function App() {
-//   return (
-//     <AuthProvider
-//       signUpUseCase={registerUseCase}
-//       signInUseCase={loginUseCase}
-//       signOutUseCase={logoutUseCase}
-//       fetchCurrentUserUseCase={fetchCurrentUserUseCase}
-//     >
-//       <AppNavigator />
-//     </AuthProvider>
-//   );
-// }
+  return (
+    <AuthProvider
+      signUpUseCase={registerUseCase}
+      signInUseCase={loginUseCase}
+      signOutUseCase={logoutUseCase}
+      fetchCurrentUserUseCase={fetchCurrentUserUseCase}
+    >
+      <AppNavigator />
+    </AuthProvider>
+  );
+}

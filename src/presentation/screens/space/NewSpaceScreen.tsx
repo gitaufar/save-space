@@ -13,7 +13,7 @@ import { CreateSpaceUseCase } from '../../../domain/usecases/space/CreateSpaceUs
 export default function NewSpaceScreen() {
   const navigation = useNavigation();
   const [name, setName] = useState('');
-  const [divisi, setDivisi] = useState('');
+  const [divisi, setDivisi] = useState('');                                                                      
   const [deskripsi, setDeskripsi] = useState('');
   const [budayaKerja, setBudayaKerja] = useState('');
   const [jamKerja, setJamKerja] = useState('');
@@ -36,7 +36,7 @@ export default function NewSpaceScreen() {
         work_culture: budayaKerja || null as any,
       } as any);
       const token = space.id;
-      navigation.navigate({ token } as never);
+      navigation.navigate('InviteCode' as never, { token } as never);
     } catch (e: any) {
       console.log('Create space error:', e);
       Alert.alert('Gagal membuat ruang', e?.message || 'Terjadi kesalahan');

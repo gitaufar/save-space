@@ -83,11 +83,11 @@ export const DashboardKaryawanLayout = () => {
             
             <View className="px-5">
                 <MainBox 
-                    title={mainBoxData[MainBoxType.CBI_TEST].title}
-                    paragraph={mainBoxData[MainBoxType.CBI_TEST].paragraph}
-                    image={mainBoxData[MainBoxType.CBI_TEST].image}
-                    onPress={mainBoxData[MainBoxType.CBI_TEST].onPress}
-                    type={MainBoxType.CBI_TEST}
+                    title={mainBoxData[MainBoxType.MOOD_CHECK].title}
+                    paragraph={mainBoxData[MainBoxType.MOOD_CHECK].paragraph}
+                    image={mainBoxData[MainBoxType.MOOD_CHECK].image}
+                    onPress={mainBoxData[MainBoxType.MOOD_CHECK].onPress}
+                    type={MainBoxType.MOOD_CHECK}
                 />
                 <RiwayatMood
                  />

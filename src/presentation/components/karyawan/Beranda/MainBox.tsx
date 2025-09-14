@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity, Pressable } from "react-native";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { useNavigation } from '@react-navigation/native';
 
@@ -41,25 +41,32 @@ export const MainBox = ({
     navigation.navigate('CBITestScreen');
   };
 
+    const handleMoodCheck = () => {
+    navigation.navigate('MoodCheckScreen');
+  };
+
   // "Button" non-klik khusus untuk MOOD_CHECK dan CBI_TEST
   const renderAction = () => {
     if (type === MainBoxType.MOOD_CHECK) {
       return (
-        <View className="mt-3 self-start flex-row items-center bg-[#E5E7EB]/50 px-6 py-4 rounded-xl">
+        <Pressable
+          className="mt-3 self-start flex-row items-center bg-[#E5E7EB]/50 px-6 py-4 rounded-xl"
+          onPress={handleMoodCheck}
+        >
           <Text className="text-[14px] font-semibold text-[#1E293B] mr-1">Isi Sekarang</Text>
           <MaterialIcons name="chevron-right" size={16} color="#1E293B"  />
-        </View>
+        </Pressable>
       );
     }
     if (type === MainBoxType.CBI_TEST) {
       return (
-        <TouchableOpacity 
+        <Pressable
           className="mt-3 self-start flex-row items-center bg-[#E5E7EB]/50 px-6 py-4 rounded-xl"
           onPress={handleCBITestNavigation}
         >
           <Text className="text-[13px] text-[#1E293B] mr-1">Mulai Tes CBI</Text>
           <MaterialIcons name="edit" size={16} color="#1E293B" />
-        </TouchableOpacity>
+        </Pressable>
       );
     }
     return null;

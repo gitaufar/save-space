@@ -24,7 +24,7 @@ export default function RegisterDataScreen() {
   const navigation = useNavigation<AuthNav>();
   const route = useRoute();
   const { role } = route.params as RegisterStepRoute;
-  const { signUp, loading, error } = useAuth();
+  const { signUp, updateAvatar, loading, error } = useAuth();
 
   const [step, setStep] = useState(1);
 
@@ -40,7 +40,9 @@ export default function RegisterDataScreen() {
   const [validationErrors, setValidationErrors] = useState<{[key: string]: string}>({});
 
   // state foto profil
-  const [photo, setPhoto] = useState<string | null>(null);
+  const [photo, setPhoto] = useState<string | null>(null); // preview uri
+  const [photoBase64, setPhotoBase64] = useState<string | null>(null);
+  const [photoType, setPhotoType] = useState<string | null>(null); // e.g., image/jpeg
 
   const handleNextStep = async () => {
     if (step === 1) {
@@ -128,19 +130,25 @@ export default function RegisterDataScreen() {
     const hasPermission = await requestCameraPermission();
     if (!hasPermission) return;
 
-    launchCamera({ mediaType: 'photo', quality: 0.7 }, response => {
+    launchCamera({ mediaType: 'photo', quality: 0.7, includeBase64: true }, response => {
       if (response.assets && response.assets.length > 0) {
-        setPhoto(response.assets[0].uri || null);
+        const asset = response.assets[0];
+        setPhoto(asset.uri || null);
+        setPhotoBase64(asset.base64 || null);
+        setPhotoType(asset.type || 'image/jpeg');
       }
     });
   };
 
   const handleChooseFromGallery = () => {
     launchImageLibrary(
-      { mediaType: 'photo', quality: 0.7 },
+      { mediaType: 'photo', quality: 0.7, includeBase64: true },
       (response: ImagePickerResponse) => {
         if (response.assets && response.assets.length > 0) {
-          setPhoto(response.assets[0].uri || null);
+          const asset = response.assets[0];
+          setPhoto(asset.uri || null);
+          setPhotoBase64(asset.base64 || null);
+          setPhotoType(asset.type || 'image/jpeg');
         }
       },
     );
@@ -179,7 +187,16 @@ export default function RegisterDataScreen() {
           onTakePhoto={handleTakePhoto}
           onChooseGallery={handleChooseFromGallery}
           onBack={handleBackStep}
-          onSave={handleNextStep}
+          onSave={async () => {
+            try {
+              if (photo) {
+                await updateAvatar(photo);
+              }
+              await handleNextStep();
+            } catch (e: any) {
+              Alert.alert('Error', e?.message || 'Gagal menyimpan foto profil');
+            }
+          }}
         />
       )}
 

@@ -4,6 +4,7 @@ import { RegisterUseCase } from "../../domain/usecases/auth/RegisterUseCase";
 import { LoginUseCase } from "../../domain/usecases/auth/LoginUseCase";
 import { LogoutUseCase } from "../../domain/usecases/auth/LogoutUseCase";
 import { FetchCurrentUserUseCase } from "../../domain/usecases/auth/FetchCurrentUserUseCase";
+import { UpdateAvatarUseCase } from "../../domain/usecases/auth/UpdateAvatarUseCase";
 
 type AuthContextType = ReturnType<typeof useAuthViewModel>;
 
@@ -17,6 +18,7 @@ type AuthProviderProps = {
   signInUseCase: LoginUseCase;
   signOutUseCase: LogoutUseCase;
   fetchCurrentUserUseCase: FetchCurrentUserUseCase;
+  updateAvatarUseCase: UpdateAvatarUseCase;
 };
 
 export function AuthProvider({
@@ -25,12 +27,14 @@ export function AuthProvider({
   signInUseCase,
   signOutUseCase,
   fetchCurrentUserUseCase,
+  updateAvatarUseCase,
 }: AuthProviderProps) {
   const auth = useAuthViewModel({
     signUpUseCase,
     signInUseCase,
     signOutUseCase,
     fetchCurrentUserUseCase,
+    updateAvatarUseCase,
   });
 
   return <AuthContext.Provider value={auth}>{children}</AuthContext.Provider>;

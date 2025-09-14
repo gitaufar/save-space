@@ -1,4 +1,5 @@
 import { supabase } from '../../core/utils/SupabaseClient';
+import { SUPABASE_URL, SUPABASE_KEY } from '@env';
 
 export class AuthDataSource {
   private sanitizeEmail(email: string) {
@@ -102,5 +103,72 @@ export class AuthDataSource {
       .eq('id', user.id)
       .single();
     return { authUser: user, appUser };
+  }
+
+  async updateAvatar(fileUri: string): Promise<string> {
+    const authUser = supabase.auth.user();
+    const session = supabase.auth.session();
+    if (!authUser || !session) throw new Error('Not authenticated');
+    if (!fileUri) throw new Error('No file provided');
+
+    // Derive content type and extension
+    let ext = 'jpg';
+    let contentType = 'image/jpeg';
+    if (fileUri.startsWith('data:')) {
+      const semi = fileUri.indexOf(';');
+      const mime = fileUri.substring(5, semi > 5 ? semi : fileUri.length);
+      if (mime) contentType = mime;
+      const slash = mime.indexOf('/');
+      if (slash > -1) ext = mime.substring(slash + 1).toLowerCase();
+    } else {
+      const extMatch = /\.([a-zA-Z0-9]+)(?:\?.*)?$/.exec(fileUri || '');
+      ext = (extMatch?.[1] || 'jpg').toLowerCase();
+      contentType = ext === 'png' ? 'image/png' : ext === 'webp' ? 'image/webp' : 'image/jpeg';
+    }
+
+    const filePath = `${authUser.id}/${Date.now()}.${ext}`;
+
+    // Use direct REST upload with FormData (RN-friendly)
+    const form: any = new FormData();
+    if (fileUri.startsWith('data:')) {
+      // RN FormData does not support data URIs; convert to a temporary blob-like object via fetch
+      // Fallback: POST binary buffer using fetch with appropriate headers is not reliable on RN
+      // Instead, prefer using original asset uri from image picker
+      throw new Error('Data URI not supported for upload; please provide a file uri');
+    } else {
+      form.append('file', {
+        uri: fileUri,
+        name: `avatar.${ext}`,
+        type: contentType,
+      } as any);
+    }
+
+    const resp = await fetch(`${SUPABASE_URL}/storage/v1/object/profile_picture/${filePath}`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+          apikey: SUPABASE_KEY,
+          'x-upsert': 'true',
+        } as any,
+        body: form,
+      }
+    );
+
+    if (!resp.ok) {
+      const text = await resp.text().catch(() => '');
+      throw new Error(`Upload failed: ${resp.status} ${text}`);
+    }
+
+    const { publicURL } = supabase.storage.from('profile_picture').getPublicUrl(filePath);
+    const avatarUrl = publicURL || '';
+
+    const { error: updateError } = await supabase
+      .from('app_users')
+      .update({ avatar_url: avatarUrl })
+      .eq('id', authUser.id);
+    if (updateError) throw updateError;
+
+    return avatarUrl;
   }
 }

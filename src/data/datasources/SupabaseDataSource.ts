@@ -134,11 +134,11 @@ export class SupabaseDataSource {
     // kasih nama file unik
     const fileExt = file.name.split('.').pop();
     const fileName = `${userId}-${Date.now()}.${fileExt}`;
-    const filePath = `avatars/${fileName}`;
+    const filePath = `profile_picture/${fileName}`;
 
-    // upload ke bucket "avatars"
+    // upload ke bucket "profile_picture"
     const { error } = await supabase.storage
-      .from('avatars')
+      .from('profile_picture')
       .upload(filePath, file, {
         cacheControl: '3600',
         upsert: false, // kalau true, bisa overwrite file dengan nama sama
@@ -147,7 +147,7 @@ export class SupabaseDataSource {
     if (error) throw error;
 
     // ambil public url
-    const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
+    const { data } = supabase.storage.from('profile_picture').getPublicUrl(filePath);
 
     if (!data || !data.publicURL) {
       throw new Error('Failed to get public URL for avatar.');

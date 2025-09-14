@@ -4,12 +4,14 @@ import { LoginUseCase } from '../../../domain/usecases/auth/LoginUseCase';
 import { LogoutUseCase } from '../../../domain/usecases/auth/LogoutUseCase';
 import { RegisterUseCase } from '../../../domain/usecases/auth/RegisterUseCase';
 import { User } from '../../../domain/entities/User';
+import { UpdateAvatarUseCase } from '../../../domain/usecases/auth/UpdateAvatarUseCase';
 
 type AuthUseCases = {
   signUpUseCase: RegisterUseCase;
   signInUseCase: LoginUseCase;
   signOutUseCase: LogoutUseCase;
   fetchCurrentUserUseCase: FetchCurrentUserUseCase;
+  updateAvatarUseCase: UpdateAvatarUseCase;
 };
 
 export function useAuthViewModel({
@@ -17,6 +19,7 @@ export function useAuthViewModel({
   signInUseCase,
   signOutUseCase,
   fetchCurrentUserUseCase,
+  updateAvatarUseCase,
 }: AuthUseCases) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
@@ -83,5 +86,19 @@ export function useAuthViewModel({
     }
   }, [fetchCurrentUserUseCase]);
 
-  return { user, loading, error, signUp, signIn, signOut, fetchCurrentUser };
+  const updateAvatar = useCallback(async (fileUri: string) => {
+    setLoading(true);
+    try {
+      const url = await updateAvatarUseCase.execute(fileUri);
+      setUser(prev => prev ? { ...prev, avatar_url: url } : prev);
+      return url;
+    } catch (err: any) {
+      setError(err.message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, [updateAvatarUseCase]);
+
+  return { user, loading, error, signUp, signIn, signOut, fetchCurrentUser, updateAvatar };
 }

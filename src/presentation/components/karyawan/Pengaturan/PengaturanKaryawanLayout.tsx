@@ -2,12 +2,14 @@ import React from "react";
 import { View, Text, ScrollView, Image } from "react-native";
 import { ButtonPengaturan } from "./ButtonPengaturan";
 import { User, LogOut, HelpCircle, Info } from "lucide-react-native";
+import { useNavigation } from "@react-navigation/native";
 
 export const PengaturanKaryawanLayout = () => {
+    const navigation = useNavigation();
     return (
         <ScrollView className="flex-1 bg-[#F9FAFB]">
             {/* Header */}
-            <View className="w-full bg-primary pt-12 pb-6 px-6 items-center">
+            <View className="w-full bg-primary pt-12 pb-6 px-5 items-center">
                 <Text className="font-semibold text-[18px] text-white mb-4">
                     Pengaturan
                 </Text>
@@ -51,7 +53,7 @@ export const PengaturanKaryawanLayout = () => {
                     text="Ubah informasi pribadi"
                     icon={<User size={18} color="#00BFA6" strokeWidth={2} />}
                     colorBgIcon="rgba(0,191,166,0.15)"
-                    onPress={() => console.log("Atur Profil")}
+                    onPress={() => navigation.navigate('ProfileScreen' as never)}
                     className="mb-2"
                 />
             </View>

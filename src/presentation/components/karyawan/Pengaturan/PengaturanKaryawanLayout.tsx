@@ -3,12 +3,14 @@ import { View, Text, ScrollView, Image, Alert } from "react-native";
 import { ButtonPengaturan } from "./ButtonPengaturan";
 import { User, LogOut, HelpCircle, Info } from "lucide-react-native";
 import { useAuth } from "../../../contexts/AuthContext";
+import { useNavigation } from "@react-navigation/native";
 
 export const PengaturanKaryawanLayout = () => {
+    const navigation = useNavigation<any>();
     const { user, signOut } = useAuth();
     const displayName = user?.name && user.name.trim().length > 0 ? user.name : (user?.email?.split("@")[0] ?? "-");
     const displayEmail = user?.email ?? "-";
-    const roleLabel = user?.role === 'Karyawan' ? 'Staff' : (user?.role ?? '-');
+    const roleLabel = user?.role ?? '-';
     const avatarUrl = user?.avatar_url || 'https://i.pravatar.cc/150?img=44';
 
     const handleLogout = () => {

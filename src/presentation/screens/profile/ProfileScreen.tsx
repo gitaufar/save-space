@@ -1,28 +1,76 @@
-import React, { useState } from "react";
-import { View, ScrollView, Text, Image, TouchableOpacity } from "react-native";
+import React, { useMemo, useState } from "react";
+import { View, ScrollView, Text, Image, TouchableOpacity, Alert, Modal } from "react-native";
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { useNavigation } from "@react-navigation/native";
 import { TextField } from "../../components/common/TextField";
 import { Button } from "../../components/common/Button";
+import { useAuth } from "../../contexts/AuthContext";
+import { launchImageLibrary, launchCamera } from 'react-native-image-picker';
 
 export default function ProfileScreen() {
     const navigation = useNavigation();
-    
-    // State untuk form data
+    const { user, loading, updateAvatar, updateProfile, changePassword } = useAuth();
+    const roleLabel = useMemo(() => user?.role ?? '-', [user?.role]);
+    // State untuk form data (prefill dari backend)
     const [formData, setFormData] = useState({
-        nama: "Sarah Wijaya",
-        email: "sarah.wijaya@company.com",
-        telepon: "+62 812-3456-7890",
-        jabatan: "Staff"
+        nama: user?.name || '',
+        email: user?.email || '',
     });
+    const [pwdVisible, setPwdVisible] = useState(false);
+    const [pwd1, setPwd1] = useState("");
+    const [pwd2, setPwd2] = useState("");
 
     const handleGoBack = () => {
         navigation.goBack();
     };
 
-    const handleSave = () => {
-        console.log("Data tersimpan:", formData);
-        navigation.goBack();
+    const handleSave = async () => {
+        try {
+            const changes: any = {};
+            if (formData.nama !== user?.name) changes.name = formData.nama;
+            if (formData.email !== user?.email) changes.email = formData.email;
+            if (Object.keys(changes).length === 0) {
+                navigation.goBack();
+                return;
+            }
+            await updateProfile(changes);
+            Alert.alert('Sukses', 'Profil berhasil diperbarui');
+            navigation.goBack();
+        } catch (e: any) {
+            Alert.alert('Error', e?.message || 'Gagal memperbarui profil');
+        }
+    };
+
+    const handlePickAvatar = () => {
+        Alert.alert('Ubah Foto Profil', 'Pilih sumber gambar', [
+            { text: 'Kamera', onPress: () => launchCamera({ mediaType: 'photo' }, async (res) => {
+                const uri = res.assets?.[0]?.uri; if (!uri) return;
+                try { await updateAvatar(uri); } catch (e: any) { Alert.alert('Error', e?.message || 'Gagal mengubah foto'); }
+            }) },
+            { text: 'Galeri', onPress: () => launchImageLibrary({ mediaType: 'photo' }, async (res) => {
+                const uri = res.assets?.[0]?.uri; if (!uri) return;
+                try { await updateAvatar(uri); } catch (e: any) { Alert.alert('Error', e?.message || 'Gagal mengubah foto'); }
+            }) },
+            { text: 'Batal', style: 'cancel' },
+        ]);
+    };
+
+    const handleChangePassword = async () => {
+        if (!pwd1 || pwd1.length < 6) {
+            Alert.alert('Error', 'Password minimal 6 karakter');
+            return;
+        }
+        if (pwd1 !== pwd2) {
+            Alert.alert('Error', 'Konfirmasi password tidak sama');
+            return;
+        }
+        try {
+            await changePassword(pwd1);
+            setPwd1(""); setPwd2(""); setPwdVisible(false);
+            Alert.alert('Sukses', 'Password berhasil diubah');
+        } catch (e: any) {
+            Alert.alert('Error', e?.message || 'Gagal mengubah password');
+        }
     };
 
     return(
@@ -45,11 +93,12 @@ export default function ProfileScreen() {
                 <View className="items-center">
                     <View className="relative">
                         <Image 
-                            source={{ uri: 'https://randomuser.me/api/portraits/women/44.jpg' }}
+                            source={{ uri: user?.avatar_url || 'https://i.pravatar.cc/150?img=44' }}
                             className="h-24 w-24 rounded-full"
                         />
                         <TouchableOpacity 
                             className="absolute bottom-0 right-0 bg-primary rounded-full p-1"
+                            onPress={handlePickAvatar}
                         >
                             <MaterialIcons name="camera-alt" size={18} color="white" />
                         </TouchableOpacity>
@@ -86,14 +135,9 @@ export default function ProfileScreen() {
                     />
                 </View>
                 
-                {/* Nomor Telepon */}
-                <View className="mb-2">
-                    <TextField
-                        label="Nomor Telepon"
-                        value={formData.telepon}
-                        onChangeText={(text) => setFormData({...formData, telepon: text})}
-                        keyboardType="phone-pad"
-                    />
+                <View className="mb-1">
+                    <Text className="text-gray-500">Role</Text>
+                    <Text className="text-gray-800 font-medium">{roleLabel}</Text>
                 </View>
             </View>
 
@@ -106,7 +150,7 @@ export default function ProfileScreen() {
                 
                 <TouchableOpacity 
                     className="flex-row justify-between items-center border border-gray-200 rounded-lg px-3 py-4"
-                    onPress={() => console.log("Change password")}
+                    onPress={() => setPwdVisible(true)}
                 >
                     <View className="flex-row items-center">
                         <MaterialIcons name="lock" size={18} color="#64748B" style={{marginRight: 8}} />
@@ -124,8 +168,32 @@ export default function ProfileScreen() {
                     padding="py-4"
                     rounded="rounded-lg"
                     margin="0"
+                    loading={loading}
                 />
             </View>
+
+            {/* Change Password Modal */}
+            <Modal visible={pwdVisible} transparent animationType="fade">
+              <View className="flex-1 bg-black/40 items-center justify-center px-6">
+                <View className="w-full bg-white rounded-xl p-5">
+                  <View className="flex-row items-center justify-between mb-3">
+                    <Text className="text-lg font-semibold">Ubah Password</Text>
+                    <TouchableOpacity onPress={() => setPwdVisible(false)}>
+                      <MaterialIcons name="close" size={22} color="#64748B" />
+                    </TouchableOpacity>
+                  </View>
+                  <View className="mb-3">
+                    <TextField label="Password Baru" value={pwd1} onChangeText={setPwd1} secureTextEntry />
+                  </View>
+                  <View className="mb-5">
+                    <TextField label="Konfirmasi Password" value={pwd2} onChangeText={setPwd2} secureTextEntry />
+                  </View>
+                  <View className="items-center">
+                    <Button text="Simpan" onPress={handleChangePassword} padding="py-3 px-8" rounded="rounded-md" margin="0" loading={loading} />
+                  </View>
+                </View>
+              </View>
+            </Modal>
         </ScrollView>
     );
 }

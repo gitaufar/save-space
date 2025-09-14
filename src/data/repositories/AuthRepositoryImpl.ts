@@ -50,4 +50,22 @@ export class AuthRepositoryImpl implements AuthRepository {
   async updateAvatar(fileUri: string): Promise<string> {
     return await this.dataSource.updateAvatar(fileUri);
   }
+
+  async updateProfile(params: { name?: string; email?: string }): Promise<User> {
+    const res = await (this.dataSource as any).updateProfile(params);
+    const authUser = res?.authUser;
+    const appUser = res?.appUser;
+    return {
+      id: authUser?.id ?? appUser?.id ?? '',
+      email: authUser?.email ?? appUser?.email ?? '',
+      name: appUser?.name ?? undefined,
+      role: appUser?.role ?? undefined,
+      space_id: appUser?.space_id ?? null,
+      avatar_url: appUser?.avatar_url ?? null,
+    };
+  }
+
+  async changePassword(newPassword: string): Promise<void> {
+    await (this.dataSource as any).changePassword(newPassword);
+  }
 }

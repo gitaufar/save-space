@@ -5,6 +5,8 @@ import { LoginUseCase } from "../../domain/usecases/auth/LoginUseCase";
 import { LogoutUseCase } from "../../domain/usecases/auth/LogoutUseCase";
 import { FetchCurrentUserUseCase } from "../../domain/usecases/auth/FetchCurrentUserUseCase";
 import { UpdateAvatarUseCase } from "../../domain/usecases/auth/UpdateAvatarUseCase";
+import { UpdateProfileUseCase } from "../../domain/usecases/auth/UpdateProfileUseCase";
+import { ChangePasswordUseCase } from "../../domain/usecases/auth/ChangePasswordUseCase";
 
 type AuthContextType = ReturnType<typeof useAuthViewModel>;
 
@@ -19,6 +21,8 @@ type AuthProviderProps = {
   signOutUseCase: LogoutUseCase;
   fetchCurrentUserUseCase: FetchCurrentUserUseCase;
   updateAvatarUseCase: UpdateAvatarUseCase;
+  updateProfileUseCase: UpdateProfileUseCase;
+  changePasswordUseCase: ChangePasswordUseCase;
 };
 
 export function AuthProvider({
@@ -28,6 +32,8 @@ export function AuthProvider({
   signOutUseCase,
   fetchCurrentUserUseCase,
   updateAvatarUseCase,
+  updateProfileUseCase,
+  changePasswordUseCase,
 }: AuthProviderProps) {
   const auth = useAuthViewModel({
     signUpUseCase,
@@ -35,6 +41,8 @@ export function AuthProvider({
     signOutUseCase,
     fetchCurrentUserUseCase,
     updateAvatarUseCase,
+    updateProfileUseCase,
+    changePasswordUseCase,
   });
 
   return <AuthContext.Provider value={auth}>{children}</AuthContext.Provider>;

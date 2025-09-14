@@ -110,27 +110,53 @@ export default function RegisterDataScreen() {
 
   async function requestCameraPermission() {
     if (Platform.OS === 'android') {
-      const granted = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.CAMERA,
-        {
-          title: 'Izin Kamera',
-          message:
-            'Aplikasi ini membutuhkan akses kamera untuk mengambil foto.',
-          buttonNeutral: 'Tanya Nanti',
-          buttonNegative: 'Batal',
-          buttonPositive: 'OK',
-        },
-      );
-      return granted === PermissionsAndroid.RESULTS.GRANTED;
+      const perms: string[] = [PermissionsAndroid.PERMISSIONS.CAMERA];
+      // Android 13+ needs READ_MEDIA_IMAGES for gallery/camera file access
+      // Older Android may need READ_EXTERNAL_STORAGE
+      const sdk = Number(Platform.Version);
+      if (!Number.isNaN(sdk)) {
+        if (sdk >= 33 && (PermissionsAndroid as any).PERMISSIONS.READ_MEDIA_IMAGES) {
+          perms.push((PermissionsAndroid as any).PERMISSIONS.READ_MEDIA_IMAGES);
+        } else if ((PermissionsAndroid as any).PERMISSIONS.READ_EXTERNAL_STORAGE) {
+          perms.push((PermissionsAndroid as any).PERMISSIONS.READ_EXTERNAL_STORAGE);
+        }
+      }
+      const results = await PermissionsAndroid.requestMultiple(perms);
+      const cam = results[PermissionsAndroid.PERMISSIONS.CAMERA] === PermissionsAndroid.RESULTS.GRANTED;
+      const extraKey = (results as any)[(PermissionsAndroid as any).PERMISSIONS.READ_MEDIA_IMAGES] ?? (results as any)[(PermissionsAndroid as any).PERMISSIONS.READ_EXTERNAL_STORAGE];
+      const extra = extraKey ? extraKey === PermissionsAndroid.RESULTS.GRANTED : true;
+      return cam && extra;
+    }
+    return true;
+  }
+
+  async function requestGalleryPermission() {
+    if (Platform.OS === 'android') {
+      const sdk = Number(Platform.Version);
+      if (sdk >= 33 && (PermissionsAndroid as any).PERMISSIONS.READ_MEDIA_IMAGES) {
+        const granted = await PermissionsAndroid.request((PermissionsAndroid as any).PERMISSIONS.READ_MEDIA_IMAGES);
+        return granted === PermissionsAndroid.RESULTS.GRANTED;
+      } else if ((PermissionsAndroid as any).PERMISSIONS.READ_EXTERNAL_STORAGE) {
+        const granted = await PermissionsAndroid.request((PermissionsAndroid as any).PERMISSIONS.READ_EXTERNAL_STORAGE);
+        return granted === PermissionsAndroid.RESULTS.GRANTED;
+      }
     }
     return true;
   }
 
   const handleTakePhoto = async () => {
     const hasPermission = await requestCameraPermission();
-    if (!hasPermission) return;
+    if (!hasPermission) {
+      Alert.alert('Izin diperlukan', 'Aplikasi membutuhkan izin kamera & akses media.');
+      return;
+    }
 
-    launchCamera({ mediaType: 'photo', quality: 0.7, includeBase64: true }, response => {
+    launchCamera({ mediaType: 'photo', quality: 0.7 }, response => {
+      if (response.didCancel) return;
+      if (response.errorCode) {
+        Alert.alert('Error Kamera', response.errorMessage || response.errorCode);
+        return;
+      }
       if (response.assets && response.assets.length > 0) {
         const asset = response.assets[0];
         setPhoto(asset.uri || null);
@@ -140,10 +166,20 @@ export default function RegisterDataScreen() {
     });
   };
 
-  const handleChooseFromGallery = () => {
+  const handleChooseFromGallery = async () => {
+    const ok = await requestGalleryPermission();
+    if (!ok) {
+      Alert.alert('Izin diperlukan', 'Aplikasi membutuhkan akses media untuk memilih foto.');
+      return;
+    }
     launchImageLibrary(
-      { mediaType: 'photo', quality: 0.7, includeBase64: true },
+      { mediaType: 'photo', quality: 0.7 },
       (response: ImagePickerResponse) => {
+        if (response.didCancel) return;
+        if (response.errorCode) {
+          Alert.alert('Error Galeri', response.errorMessage || response.errorCode);
+          return;
+        }
         if (response.assets && response.assets.length > 0) {
           const asset = response.assets[0];
           setPhoto(asset.uri || null);

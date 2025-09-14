@@ -171,4 +171,49 @@ export class AuthDataSource {
 
     return avatarUrl;
   }
+
+  async updateProfile(params: { name?: string; email?: string }) {
+    const authUser = supabase.auth.user();
+    if (!authUser) throw new Error('Not authenticated');
+
+    // Update Supabase Auth email if changed
+    if (params.email && params.email !== authUser.email) {
+      const cleanEmail = this.sanitizeEmail(params.email);
+      if (!this.isValidEmail(cleanEmail)) {
+        throw new Error(`Invalid email format: ${cleanEmail}`);
+      }
+      const { user: updatedAuth, error: authErr } = await (supabase.auth as any).update({ email: cleanEmail });
+      if (authErr) throw authErr;
+      // Note: when email confirmation is enabled, user must confirm before email is active
+    }
+
+    // Update app_users profile fields
+    const patch: any = {};
+    if (typeof params.name === 'string') patch.name = params.name;
+    if (typeof params.email === 'string') patch.email = this.sanitizeEmail(params.email);
+
+    if (Object.keys(patch).length > 0) {
+      const { error: appErr } = await supabase
+        .from('app_users')
+        .update(patch)
+        .eq('id', authUser.id);
+      if (appErr) throw appErr;
+    }
+
+    // Return updated combined profile
+    const { data: appUser, error: fetchErr } = await supabase
+      .from('app_users')
+      .select('*')
+      .eq('id', authUser.id)
+      .single();
+    if (fetchErr) throw fetchErr;
+    return { authUser: supabase.auth.user(), appUser };
+  }
+
+  async changePassword(newPassword: string) {
+    const authUser = supabase.auth.user();
+    if (!authUser) throw new Error('Not authenticated');
+    const { error } = await (supabase.auth as any).update({ password: newPassword });
+    if (error) throw error;
+  }
 }

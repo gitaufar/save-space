@@ -8,4 +8,6 @@ export interface AuthRepository {
   signOut(): Promise<void>;
   getCurrentUser(): Promise<User | null>;
   updateAvatar(fileUri: string): Promise<string>; // returns avatar_url
+  updateProfile(params: { name?: string; email?: string }): Promise<User>;
+  changePassword(newPassword: string): Promise<void>;
 }

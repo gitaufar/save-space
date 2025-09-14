@@ -12,6 +12,7 @@ type Props = {
   onChooseGallery: () => void;
   onBack: () => void;
   onSave: () => void;
+  loading?: boolean;
 };
 
 export default function Step2FotoProfil({
@@ -21,6 +22,7 @@ export default function Step2FotoProfil({
   onChooseGallery,
   onBack,
   onSave,
+  loading = false,
 }: Props) {
   return (
     <View className="p-4">
@@ -40,7 +42,7 @@ export default function Step2FotoProfil({
 
       {photo ? (
         <View className="flex flex-col gap-4 justify-end">
-          <Button text="Selanjutnya" onPress={onSave} margin="0" />
+          <Button text="Selanjutnya" onPress={onSave} margin="0" loading={loading} />
         </View>
       ) : (
         <TipsFotoProfil

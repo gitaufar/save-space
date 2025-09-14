@@ -102,7 +102,7 @@ export const DashboardKaryawanLayout = () => {
                 
                 <View className="h-20 w-20 rounded-full overflow-hidden border-8 border-white/30">
                     <Image 
-                        source={{ uri: 'https://randomuser.me/api/portraits/women/44.jpg' }}
+                        source={{ uri: user?.avatar_url || 'https://i.pravatar.cc/150?img=44' }}
                         className="h-full w-full"
                     />
                 </View>

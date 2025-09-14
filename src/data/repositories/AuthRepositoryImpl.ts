@@ -14,6 +14,7 @@ export class AuthRepositoryImpl implements AuthRepository {
       name: result.appUser?.name ?? undefined,
       role: result.appUser?.role ?? undefined,
       space_id: result.appUser?.space_id ?? null,
+      avatar_url: result.appUser?.avatar_url ?? null,
     };
   }
 
@@ -25,6 +26,7 @@ export class AuthRepositoryImpl implements AuthRepository {
       name: result.appUser?.name ?? undefined,
       role: result.appUser?.role ?? undefined,
       space_id: result.appUser?.space_id ?? null,
+      avatar_url: result.appUser?.avatar_url ?? null,
     };
   }
 
@@ -41,6 +43,11 @@ export class AuthRepositoryImpl implements AuthRepository {
       name: res.appUser?.name ?? undefined,
       role: res.appUser?.role ?? undefined,
       space_id: res.appUser?.space_id ?? null,
+      avatar_url: res.appUser?.avatar_url ?? null,
     };
+  }
+
+  async updateAvatar(fileUri: string): Promise<string> {
+    return await this.dataSource.updateAvatar(fileUri);
   }
 }

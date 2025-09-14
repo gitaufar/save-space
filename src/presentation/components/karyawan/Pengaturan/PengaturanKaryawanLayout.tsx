@@ -1,9 +1,37 @@
 import React from "react";
-import { View, Text, ScrollView, Image } from "react-native";
+import { View, Text, ScrollView, Image, Alert } from "react-native";
 import { ButtonPengaturan } from "./ButtonPengaturan";
 import { User, LogOut, HelpCircle, Info } from "lucide-react-native";
+import { useAuth } from "../../../contexts/AuthContext";
 
 export const PengaturanKaryawanLayout = () => {
+    const { user, signOut } = useAuth();
+    const displayName = user?.name && user.name.trim().length > 0 ? user.name : (user?.email?.split("@")[0] ?? "-");
+    const displayEmail = user?.email ?? "-";
+    const roleLabel = user?.role === 'Karyawan' ? 'Staff' : (user?.role ?? '-');
+    const avatarUrl = user?.avatar_url || 'https://i.pravatar.cc/150?img=44';
+
+    const handleLogout = () => {
+        Alert.alert(
+            "Konfirmasi",
+            "Apakah Anda yakin ingin keluar?",
+            [
+                { text: "Tidak", style: "cancel" },
+                {
+                    text: "Iya",
+                    style: "destructive",
+                    onPress: async () => {
+                        try {
+                            await signOut();
+                        } catch (e) {
+                            // Optional: you may show another alert/toast here
+                        }
+                    },
+                },
+            ],
+            { cancelable: true }
+        );
+    };
     return (
         <ScrollView className="flex-1 bg-[#F9FAFB]">
             {/* Header */}
@@ -27,15 +55,15 @@ export const PengaturanKaryawanLayout = () => {
                     }}
                 >
                 <Image 
-                    source={{ uri: 'https://randomuser.me/api/portraits/women/44.jpg' }}
+                    source={{ uri: avatarUrl }}
                     className="h-20 w-20 rounded-full"
                 />
                 <View className="ml-3">
-                    <Text className="font-semibold text-[#1E293B]">Sarah Wijaya</Text>
-                    <Text className="text-sm text-gray-500">sarah.wijaya@company.com</Text>
+                    <Text className="font-semibold text-[#1E293B]">{displayName}</Text>
+                    <Text className="text-sm text-gray-500">{displayEmail}</Text>
                     <View className="flex-row items-center mt-1">
                         <View className="h-2 w-2 rounded-full bg-green-500 mr-1" />
-                        <Text className="text-xs text-gray-500">Online (Staff)</Text>
+                        <Text className="text-xs text-gray-500">Online ({roleLabel})</Text>
                     </View>
                 </View>
             </View>
@@ -91,7 +119,7 @@ export const PengaturanKaryawanLayout = () => {
                     color="#FEF2F2"
                     titleColor="#DC2626"
                     textColor="#EF4444"
-                    onPress={() => console.log("Logout")}
+                    onPress={handleLogout}
                 />
             </View>
         </ScrollView>

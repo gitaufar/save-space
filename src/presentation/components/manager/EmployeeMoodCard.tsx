@@ -2,27 +2,44 @@ import React from 'react';
 import { View, Text, Image, TouchableOpacity } from 'react-native';
 import { ChevronRight } from 'lucide-react-native';
 
-type MoodId = 0 | 1 | 2 | 3 | 4 | 5 | 6;
+// Import SVG sama kayak StatusMoodCard
+import StressSvg from '../../../assets/moods/stress.svg';
+import MarahSvg from '../../../assets/moods/marah.svg';
+import SedihSvg from '../../../assets/moods/sedih.svg';
+import LelahSvg from '../../../assets/moods/lelah.svg';
+import NetralSvg from '../../../assets/moods/netral.svg';
+import TenangSvg from '../../../assets/moods/tenang.svg';
+import SenangSvg from '../../../assets/moods/senang.svg';
+
+type MoodType =
+  | 'Stress'
+  | 'Marah'
+  | 'Sedih'
+  | 'Lelah'
+  | 'Netral'
+  | 'Tenang'
+  | 'Senang';
 
 type EmployeeMoodCardProps = {
   name: string;
   department: string;
   avatar: string;
-  mood: MoodId;
+  mood: MoodType;
   onPress: () => void;
 };
 
+// Mapping mood → warna & ikon
 const moodConfig: Record<
-  MoodId,
-  { label: string; emoji: string; bg: string }
+  MoodType,
+  { bg: string; color: string; icon: React.FC<any> }
 > = {
-  0: { label: 'Bahagia', emoji: '😊', bg: '#bbf7d0' },  // hijau muda
-  1: { label: 'Lelah', emoji: '😓', bg: '#fde68a' },    // kuning
-  2: { label: 'Marah', emoji: '😡', bg: '#fecaca' },    // merah muda
-  3: { label: 'Netral', emoji: '😐', bg: '#d1d5db' },   // abu
-  4: { label: 'Sedih', emoji: '😢', bg: '#bfdbfe' },    // biru muda
-  5: { label: 'Stress', emoji: '😖', bg: '#fca5a5' },   // merah
-  6: { label: 'Tenang', emoji: '😌', bg: '#fde68a' },   // kuning lembut
+  Stress: { bg: 'bg-red-100', color: '#DC2626', icon: StressSvg },
+  Marah: { bg: 'bg-orange-100', color: '#EA580C', icon: MarahSvg },
+  Sedih: { bg: 'bg-blue-100', color: '#2563EB', icon: SedihSvg },
+  Lelah: { bg: 'bg-purple-100', color: '#9333EA', icon: LelahSvg },
+  Netral: { bg: 'bg-gray-100', color: '#4B5563', icon: NetralSvg },
+  Tenang: { bg: 'bg-teal-100', color: '#0D9488', icon: TenangSvg },
+  Senang: { bg: 'bg-green-100', color: '#16A34A', icon: SenangSvg },
 };
 
 export default function EmployeeMoodCard({
@@ -32,18 +49,13 @@ export default function EmployeeMoodCard({
   mood,
   onPress,
 }: EmployeeMoodCardProps) {
-  const { emoji, bg } = moodConfig[mood];
+  const { bg, color, icon: MoodIcon } = moodConfig[mood];
 
   return (
     <TouchableOpacity
       onPress={onPress}
+      className="bg-white rounded-2xl p-3 flex-row items-center mb-3 shadow-sm"
       style={{
-        backgroundColor: '#fff',
-        borderRadius: 16,
-        padding: 12,
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 12,
         shadowColor: '#000',
         shadowOpacity: 0.05,
         shadowOffset: { width: 0, height: 2 },
@@ -54,35 +66,20 @@ export default function EmployeeMoodCard({
       {/* Avatar */}
       <Image
         source={{ uri: avatar }}
-        style={{
-          width: 48,
-          height: 48,
-          borderRadius: 24,
-          marginRight: 12,
-        }}
+        className="w-12 h-12 rounded-full mr-3"
       />
 
       {/* Info */}
-      <View style={{ flex: 1 }}>
-        <Text style={{ fontSize: 16, fontWeight: '600', color: '#111' }}>
-          {name}
-        </Text>
-        <Text style={{ fontSize: 14, color: '#6b7280' }}>{department}</Text>
+      <View className="flex-1">
+        <Text className="text-base font-semibold text-gray-900">{name}</Text>
+        <Text className="text-sm text-gray-500">{department}</Text>
       </View>
 
       {/* Mood */}
       <View
-        style={{
-          backgroundColor: bg,
-          borderRadius: 999,
-          width: 48,
-          height: 48,
-          alignItems: 'center',
-          justifyContent: 'center',
-          marginRight: 8,
-        }}
+        className={`w-12 h-12 rounded-full items-center justify-center mr-2`}
       >
-        <Text style={{ fontSize: 22 }}>{emoji}</Text>
+        <MoodIcon width={32} height={32} />
       </View>
 
       {/* Arrow */}

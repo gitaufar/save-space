@@ -35,14 +35,14 @@ export const PengaturanKaryawanLayout = () => {
     return (
         <ScrollView className="flex-1 bg-[#F9FAFB]">
             {/* Header */}
-            <View className="w-full bg-primary pt-12 pb-6 px-6 items-center">
+            <View className="items-center w-full px-6 pt-12 pb-6 bg-primary">
                 <Text className="font-semibold text-[18px] text-white mb-4">
                     Pengaturan
                 </Text>
             </View>
             
             {/* Profile Card */}
-            <View className="mx-4 bg-white rounded-xl p-4 flex-row items-center -mt-4"
+            <View className="flex-row items-center p-4 mx-4 -mt-4 bg-white rounded-xl"
                     style={{
                         shadowColor: "#000",
                         shadowOffset: {
@@ -56,13 +56,13 @@ export const PengaturanKaryawanLayout = () => {
                 >
                 <Image 
                     source={{ uri: avatarUrl }}
-                    className="h-20 w-20 rounded-full"
+                    className="w-20 h-20 rounded-full"
                 />
                 <View className="ml-3">
                     <Text className="font-semibold text-[#1E293B]">{displayName}</Text>
                     <Text className="text-sm text-gray-500">{displayEmail}</Text>
                     <View className="flex-row items-center mt-1">
-                        <View className="h-2 w-2 rounded-full bg-green-500 mr-1" />
+                        <View className="w-2 h-2 mr-1 bg-green-500 rounded-full" />
                         <Text className="text-xs text-gray-500">Online ({roleLabel})</Text>
                     </View>
                 </View>
@@ -79,7 +79,7 @@ export const PengaturanKaryawanLayout = () => {
                     text="Ubah informasi pribadi"
                     icon={<User size={18} color="#00BFA6" strokeWidth={2} />}
                     colorBgIcon="rgba(0,191,166,0.15)"
-                    onPress={() => console.log("Atur Profil")}
+                    onPress={() => navigation.navigate('ProfileScreen' as never)}
                     className="mb-2"
                 />
             </View>

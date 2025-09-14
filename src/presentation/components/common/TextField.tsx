@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { Text, TextInput, View } from "react-native";
+import { Text, TextInput, View, KeyboardTypeOptions } from "react-native";
 
 type TextFieldProps = {
   label?: string;
@@ -8,6 +8,7 @@ type TextFieldProps = {
   onChangeText: (text: string) => void;
   secureTextEntry?: boolean;
   icon?: React.ReactNode;
+  keyboardType?: KeyboardTypeOptions | undefined;
 };
 
 export const TextField = ({
@@ -17,6 +18,7 @@ export const TextField = ({
   onChangeText,
   secureTextEntry,
   icon,
+  keyboardType,
 }: TextFieldProps) => {
   return (
     <View>
@@ -32,6 +34,7 @@ export const TextField = ({
           onChangeText={onChangeText}
           secureTextEntry={secureTextEntry}
           placeholderTextColor="#9CA3AF"
+          keyboardType={keyboardType}
         />
         {icon && <View className="ml-2">{icon}</View>}
       </View>

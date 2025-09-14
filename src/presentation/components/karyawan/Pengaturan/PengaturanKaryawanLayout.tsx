@@ -1,9 +1,33 @@
 import React from "react";
-import { View, Text, ScrollView, Image } from "react-native";
+import { View, Text, ScrollView, Image, Alert } from "react-native";
 import { ButtonPengaturan } from "./ButtonPengaturan";
 import { User, LogOut, HelpCircle, Info } from "lucide-react-native";
+import { useAuth } from "../../../contexts/AuthContext";
 
 export const PengaturanKaryawanLayout = () => {
+    const { signOut } = useAuth();
+
+    const handleLogout = () => {
+        Alert.alert(
+            "Konfirmasi",
+            "Apakah Anda yakin ingin keluar?",
+            [
+                { text: "Tidak", style: "cancel" },
+                {
+                    text: "Iya",
+                    style: "destructive",
+                    onPress: async () => {
+                        try {
+                            await signOut();
+                        } catch (e) {
+                            // Optional: you may show another alert/toast here
+                        }
+                    },
+                },
+            ],
+            { cancelable: true }
+        );
+    };
     return (
         <ScrollView className="flex-1 bg-[#F9FAFB]">
             {/* Header */}
@@ -91,7 +115,7 @@ export const PengaturanKaryawanLayout = () => {
                     color="#FEF2F2"
                     titleColor="#DC2626"
                     textColor="#EF4444"
-                    onPress={() => console.log("Logout")}
+                    onPress={handleLogout}
                 />
             </View>
         </ScrollView>

@@ -187,6 +187,7 @@ export default function RegisterDataScreen() {
           onTakePhoto={handleTakePhoto}
           onChooseGallery={handleChooseFromGallery}
           onBack={handleBackStep}
+          loading={loading}
           onSave={async () => {
             try {
               if (photo) {

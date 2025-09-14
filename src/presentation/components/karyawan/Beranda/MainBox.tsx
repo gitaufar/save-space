@@ -3,23 +3,82 @@ import { View, Text, TouchableOpacity, Pressable } from "react-native";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { useNavigation } from '@react-navigation/native';
 
+// Import SVG mood icons
+import StressSvg from '../../../../assets/moods/stress.svg';
+import MarahSvg from '../../../../assets/moods/marah.svg';
+import LelahSvg from '../../../../assets/moods/lelah.svg';
+import SedihSvg from '../../../../assets/moods/sedih.svg';
+import NetralSvg from '../../../../assets/moods/netral.svg';
+import TenangSvg from '../../../../assets/moods/tenang.svg';
+import SenangSvg from '../../../../assets/moods/senang.svg';
+
 // Definisikan enum untuk tipe box
 export enum MainBoxType {
   WELCOME = "welcome",
   MOOD_CHECK = "mood",
-  CBI_TEST = "cbi"
+  CBI_TEST = "cbi",
+  AI_INSIGHT = "ai_insight"
 }
 
-// Tambahkan properti type pada MainBoxProps
+// Definisikan tipe mood
+export type MoodType = 'stress' | 'marah' | 'lelah' | 'sedih' | 'netral' | 'tenang' | 'senang';
+
+// Mapping warna dan SVG berdasarkan tipe mood
+const moodConfig = {
+  stress: { 
+    color: '#D32F2F', 
+    bg: 'bg-[#D32F2F]', 
+    text: 'Stress',
+    svg: StressSvg 
+  },
+  marah: { 
+    color: '#F44336', 
+    bg: 'bg-[#F44336]', 
+    text: 'Marah',
+    svg: MarahSvg 
+  },
+  lelah: { 
+    color: '#FF9800', 
+    bg: 'bg-[#FF9800]', 
+    text: 'Lelah',
+    svg: LelahSvg 
+  },
+  sedih: { 
+    color: '#FFC107', 
+    bg: 'bg-[#FFC107]', 
+    text: 'Sedih',
+    svg: SedihSvg 
+  },
+  netral: { 
+    color: '#9E9E9E', 
+    bg: 'bg-[#9E9E9E]', 
+    text: 'Netral',
+    svg: NetralSvg 
+  },
+  tenang: { 
+    color: '#4DB6AC', 
+    bg: 'bg-[#4DB6AC]', 
+    text: 'Tenang',
+    svg: TenangSvg 
+  },
+  senang: { 
+    color: '#00BFA6', 
+    bg: 'bg-[#00BFA6]', 
+    text: 'Senang',
+    svg: SenangSvg 
+  },
+};
+
+// Tambahkan properti type dan moodType pada MainBoxProps
 type MainBoxProps = {
   title: string;
   paragraph: string;
   image: React.ReactNode;
-  // onPress dihilangkan dari UI (tidak dipakai), jadikan opsional agar tidak error
   onPress?: () => void;
   type: MainBoxType;
+  moodType?: MoodType;  // Tambahkan moodType untuk AI_INSIGHT
   customData?: any;
-  minHeight?: number; // Tinggi minimum box dalam pixel
+  minHeight?: number;
 };
 
 export const MainBox = ({
@@ -27,22 +86,36 @@ export const MainBox = ({
   image,
   paragraph,
   type,
-  minHeight = 180, // Default 180px (h-48 equivalent)
+  moodType = 'tenang',  // Default moodType
+  minHeight = 180,
 }: MainBoxProps) => {
   const navigation = useNavigation<any>();
-  // Base styling yang digunakan oleh semua container
+  
   const baseStyle = {
     minHeight,
     padding: 32, // p-8
   };
 
-  // Handle navigasi ke CBITestScreen
   const handleCBITestNavigation = () => {
     navigation.navigate('CBITestScreen');
   };
 
-    const handleMoodCheck = () => {
+  const handleMoodCheck = () => {
     navigation.navigate('MoodCheckScreen');
+  };
+
+  // Render mood icon untuk tipe AI_INSIGHT
+  const renderMoodIcon = () => {
+    if (type === MainBoxType.AI_INSIGHT && moodType) {
+      const { svg: MoodSvg } = moodConfig[moodType];
+      
+      return (
+        <View className="bg-white/20 rounded-full w-20 h-20 items-center justify-center">
+          <MoodSvg width={40} height={40} />
+        </View>
+      );
+    }
+    return image;
   };
 
   // "Button" non-klik khusus untuk MOOD_CHECK dan CBI_TEST
@@ -81,15 +154,23 @@ export const MainBox = ({
         {renderAction()}
       </View>
       <View className="items-end justify-center w-1/2">
-        {image}
+        {type === MainBoxType.AI_INSIGHT ? renderMoodIcon() : image}
       </View>
     </View>
   );
 
+  // Tentukan warna background berdasarkan tipe
+  const getBgColor = () => {
+    if (type === MainBoxType.AI_INSIGHT && moodType) {
+      return moodConfig[moodType].bg;
+    }
+    return "bg-primary";
+  };
+
   // Semua tipe menjadi View (tidak TouchableOpacity)
   return (
     <View
-      className="w-full bg-primary rounded-3xl shadow-md mb-4 justify-center"
+      className={`w-full ${getBgColor()} rounded-3xl shadow-md mb-4 justify-center`}
       style={baseStyle}
     >
       {content}

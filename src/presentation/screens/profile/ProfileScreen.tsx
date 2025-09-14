@@ -54,8 +54,8 @@ export default function ProfileScreen() {
                             <MaterialIcons name="camera-alt" size={18} color="white" />
                         </TouchableOpacity>
                     </View>
-                    <Text className="font-bold text-gray-800 mt-3 mb-1">Foto Profil</Text>
-                    <Text className="text-gray-500 text-xs text-center">
+                    <Text className="font-bold text-[18px] text-gray-800 mt-3 mb-1">Foto Profil</Text>
+                    <Text className="text-gray-500 text-[14px] text-center">
                         Ketuk ikon kamera untuk mengubah foto profil
                     </Text>
                 </View>
@@ -92,6 +92,7 @@ export default function ProfileScreen() {
                         label="Nomor Telepon"
                         value={formData.telepon}
                         onChangeText={(text) => setFormData({...formData, telepon: text})}
+                        keyboardType="phone-pad"
                     />
                 </View>
             </View>

@@ -87,7 +87,17 @@ export default function RegisterDataScreen() {
         // lanjut ke step 2 untuk isi profil
         setStep(step + 1);
       } catch (err: any) {
-        Alert.alert('Error', err.message || 'Gagal mendaftar');
+        // Tampilkan error di bawah field email dan tetap di Step 1
+        const msg = String(err?.message || '').toLowerCase();
+        if (msg.includes('sudah terdaftar') || msg.includes('already')) {
+          setValidationErrors({ email: 'Email sudah terdaftar' });
+        } else if (msg.includes('password')) {
+          setValidationErrors({ password: 'Password tidak valid' });
+        } else if (msg.includes('email')) {
+          setValidationErrors({ email: 'Email tidak valid' });
+        } else {
+          setValidationErrors({ email: err?.message || 'Gagal mendaftar' });
+        }
         return;
       }
       return;

@@ -45,6 +45,7 @@ export function useAuthViewModel({
         await signUpUseCase.execute(email, password, name, role, space_id);
       } catch (err: any) {
         setError(err.message);
+        throw err;
       } finally {
         setLoading(false);
       }

@@ -7,9 +7,16 @@ import ListKaryawanScreen from '../screens/manager/ListKaryawanScreen.tsx';
 import CBITestScreen from '../screens/cbiTest/CBITestScreen';
 import DetailKaryawanScreen from '../screens/manager/DetailKaryawan';
 import { NavbarManager } from '../components/manager/NavbarManager';
+import { CBIProvider } from '../contexts/CBIContext';
+import { CBIRepositoryImpl } from '../../data/repositories/CBIRepositoryImpl';
+import { CreateCBITestForSpaceUseCase } from '../../domain/usecases/cbi/CreateCBITestForSpaceUseCase';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
+
+// Initialize CBI dependencies
+const cbiRepository = new CBIRepositoryImpl();
+const createCBITestForSpaceUseCase = new CreateCBITestForSpaceUseCase(cbiRepository);
 
 export type ManagerTabParamList = {
   DashboardManager: undefined;
@@ -32,15 +39,16 @@ function MainTabNavigator() {
 // Stack Navigator utama yang berisi TabNavigator dan screen lainnya
 export default function ManagerNavigator() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      {/* Tab Navigator sebagai screen pertama */}
-      <Stack.Screen name="MainTab" component={MainTabNavigator} />
-      
-      {/* Screen lain yang tidak menampilkan tab bar bisa ditambah di sini */}
-      <Stack.Screen name="ListKaryawanScreen" component={ListKaryawanScreen} />
-      <Stack.Screen name="CBITestScreen" component={CBITestScreen} />
-      <Stack.Screen name="DetailKaryawanScreen" component={DetailKaryawanScreen} />
-      {/* <Stack.Screen name="DetailManagerScreen" component={DetailManagerScreen} /> */}
-    </Stack.Navigator>
+    <CBIProvider createCBITestForSpaceUseCase={createCBITestForSpaceUseCase}>
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        {/* Tab Navigator sebagai screen pertama */}
+        <Stack.Screen name="MainTab" component={MainTabNavigator} />
+        
+        {/* Screen lain yang tidak menampilkan tab bar bisa ditambah di sini */}
+        <Stack.Screen name="ListKaryawanScreen" component={ListKaryawanScreen} />
+        <Stack.Screen name="DetailKaryawanScreen" component={DetailKaryawanScreen} />
+        {/* <Stack.Screen name="DetailManagerScreen" component={DetailManagerScreen} /> */}
+      </Stack.Navigator>
+    </CBIProvider>
   );
 }

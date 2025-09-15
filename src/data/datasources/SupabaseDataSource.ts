@@ -183,7 +183,9 @@ export class SupabaseDataSource {
     if (error) throw error;
 
     // ambil public url
-    const { data } = supabase.storage.from('profile_picture').getPublicUrl(filePath);
+    const { data } = supabase.storage
+      .from('profile_picture')
+      .getPublicUrl(filePath);
 
     if (!data || !data.publicURL) {
       throw new Error('Failed to get public URL for avatar.');
@@ -207,29 +209,29 @@ export class SupabaseDataSource {
   }
 
   // ==== MOOD RESPONSES ====
-async getMoodResponsesLast7Days(userId: string) {
-  const { data, error } = await supabase
-    .from('mood_responses')
-    .select(
-      `
+  async getMoodResponsesLast7Days(userId: string) {
+    const { data, error } = await supabase
+      .from('mood_responses')
+      .select(
+        `
       id,
       employee_id,
       mood,
       response_text,
       created_at
-    `
-    )
-    .eq('employee_id', userId) // filter by user id
-    .gte(
-      'created_at',
-      new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString() // 7 hari terakhir
-    )
-    .order('created_at', { ascending: false });
+    `,
+      )
+      .eq('employee_id', userId) // filter by user id
+      .gte(
+        'created_at',
+        new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 hari terakhir
+      )
+      .order('created_at', { ascending: false });
 
-  if (error) throw error;
+    if (error) throw error;
 
-  return data;
-}
+    return data;
+  }
 
   async addMoodResponse(data: {
     employee_id: string;
@@ -346,7 +348,7 @@ async getMoodResponsesLast7Days(userId: string) {
   }
 
   // ==== DIVISION_EVALUATION ====
-   async getDivisionEvaluationsBySpace(spaceId: string) {
+  async getDivisionEvaluationsBySpace(spaceId: string) {
     const { data, error } = await supabase
       .from('division_evaluasion')
       .select('*')
@@ -372,7 +374,7 @@ async getMoodResponsesLast7Days(userId: string) {
   }
 
   // === CBI TEST ===
-    async getCBITestByEmployee(employeeId: string) {
+  async getCBITestByEmployee(employeeId: string) {
     const { data, error } = await supabase
       .from('cbitest')
       .select('*')
@@ -395,5 +397,48 @@ async getMoodResponsesLast7Days(userId: string) {
 
     if (error) throw error;
     return data;
+  }
+
+  async createCBITestForSpace(spaceId: string) {
+    // 1. Ambil semua employee di space tertentu
+    const { data: employees, error: employeesError } = await supabase
+      .from('Users')
+      .select('id')
+      .eq('space_id', spaceId)
+      .eq('role', 'Karyawan');
+
+    if (employeesError) {
+      console.error('Error fetching employees:', employeesError.message);
+      throw employeesError;
+    }
+
+    if (!employees || employees.length === 0) {
+      console.log('Tidak ada employee di space ini');
+      return;
+    }
+
+    // 2. Buat data CBITest untuk semua employee
+    const cbiTests = employees.map(emp => ({
+      employee_id: emp.id,
+      personal_burnout: 0, // default nilai awal
+      work_burnout: 0,
+      client_burnout: 0,
+      summary: 0,
+      finished: false,
+      created_at: new Date().toISOString(),
+    }));
+
+    // 3. Insert ke tabel CBITest
+    const { data: inserted, error: insertError } = await supabase
+      .from('CBITest')
+      .insert(cbiTests);
+
+    if (insertError) {
+      console.error('Error inserting CBITest:', insertError.message);
+      throw insertError;
+    }
+
+    console.log('CBITest created:', inserted);
+    return inserted;
   }
 }

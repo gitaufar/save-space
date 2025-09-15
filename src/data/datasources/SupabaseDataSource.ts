@@ -402,7 +402,7 @@ export class SupabaseDataSource {
   async createCBITestForSpace(spaceId: string) {
     // 1. Ambil semua employee di space tertentu
     const { data: employees, error: employeesError } = await supabase
-      .from('Users')
+      .from('app_users')
       .select('id')
       .eq('space_id', spaceId)
       .eq('role', 'Karyawan');
@@ -430,7 +430,7 @@ export class SupabaseDataSource {
 
     // 3. Insert ke tabel CBITest
     const { data: inserted, error: insertError } = await supabase
-      .from('CBITest')
+      .from('cbi_test')
       .insert(cbiTests);
 
     if (insertError) {

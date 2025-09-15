@@ -13,9 +13,10 @@ import Step2FotoProfil from '../../components/auth/registerData/Step2FotoProfil'
 import Step3Selesai from '../../components/auth/registerData/Step3Selesai';
 import Step1DataDiri from '../../components/auth/registerData/Step1DataDiri';
 import { useAuth } from '../../contexts/AuthContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type RegisterStepRoute = {
-  role: 'manager' | 'karyawan';
+  role: 'manager' | 'karyawan' | 'Manager' | 'Karyawan';
 };
 
 type AuthNav = NativeStackNavigationProp<AuthStackParamList, 'RegisterStep'>;
@@ -24,7 +25,7 @@ export default function RegisterDataScreen() {
   const navigation = useNavigation<AuthNav>();
   const route = useRoute();
   const { role } = route.params as RegisterStepRoute;
-  const { signUp, updateAvatar, loading, error } = useAuth();
+  const { signUp, updateAvatar, loading, error, signIn, fetchCurrentUser } = useAuth();
 
   const [step, setStep] = useState(1);
 
@@ -82,7 +83,8 @@ export default function RegisterDataScreen() {
 
       // Register user
       try {
-        const mappedRole = role === 'manager' ? 'Manager' : 'Karyawan';
+        const normalized = String(role).toLowerCase();
+        const mappedRole = normalized === 'manager' ? 'Manager' : 'Karyawan';
         await signUp(email, password, nama, mappedRole);
         // lanjut ke step 2 untuk isi profil
         setStep(step + 1);
@@ -104,7 +106,21 @@ export default function RegisterDataScreen() {
     }
     
     if (step >= 3) {
-      navigation.navigate('Login');
+      // Selesai pendaftaran: auto-login lalu AppNavigator akan mengarahkan
+      // Manager tanpa space_id -> Space flow; Karyawan -> OldSpace
+      try {
+        // hint satu-kali: jika role manager, buka NewSpace dulu
+        const normalized = String(role).toLowerCase();
+        if (normalized === 'manager') {
+          await AsyncStorage.setItem('postRegisterInitialSpaceRoute', 'NewSpace');
+        }
+        await signIn(email, password);
+        await fetchCurrentUser();
+      } catch (e) {
+        // Jika auto-login gagal, fallback ke layar Login
+        navigation.navigate('Login');
+        return;
+      }
       return;
     }
     setStep(step + 1);

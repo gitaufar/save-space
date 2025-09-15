@@ -87,6 +87,42 @@ export class SupabaseDataSource {
   }
 
   // ==== USERS ====
+  // Versi app_users (profil autentikasi aplikasi)
+  async getAppUsersBySpace(spaceId: string) {
+    const { data, error } = await supabase
+      .from('app_users')
+      .select('id, name, email, avatar_url, role, space_id')
+      .eq('space_id', spaceId);
+    if (error) throw error;
+    return data;
+  }
+
+  async getKaryawansBySpace(spaceId: string) {
+    const { data, error } = await supabase
+      .from('app_users')
+      .select('id, name, email, avatar_url, role, space_id')
+      .eq('space_id', spaceId)
+      .eq('role', 'Karyawan');
+    if (error) throw error;
+    return data;
+  }
+
+  async getLatestMoodsForEmployees(employeeIds: string[]) {
+    if (!employeeIds || employeeIds.length === 0) return [] as any[];
+    const { data, error } = await supabase
+      .from('mood_responses')
+      .select('employee_id, mood, created_at')
+      .in('employee_id', employeeIds)
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    const latestByEmp: Record<string, any> = {};
+    for (const row of data || []) {
+      if (!latestByEmp[row.employee_id]) {
+        latestByEmp[row.employee_id] = row;
+      }
+    }
+    return latestByEmp;
+  }
   async createUser(data: {
     name: string;
     email: string;

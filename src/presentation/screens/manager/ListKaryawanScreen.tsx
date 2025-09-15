@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import EmployeeMoodCard from '../../components/manager/EmployeeMoodCard';
 import { ArrowLeft } from 'lucide-react-native'; // kalau pakai lucide-react-native
+import { useAuth } from '../../contexts/AuthContext';
+import { SupabaseDataSource } from '../../../data/datasources/SupabaseDataSource';
 
 type Employee = {
   name: string;
@@ -18,22 +20,34 @@ type ListKaryawanScreenProps = {
 export default function ListKaryawanScreen() {
   const navigation = useNavigation();
   const route = useRoute();
-  const { employees: routeEmployees } = route.params as { employees?: Employee[] } || {};
+  const { user } = useAuth();
+  const ds = useMemo(() => new SupabaseDataSource(), []);
+  const [employees, setEmployees] = useState<Employee[]>(() => {
+    const rp = (route.params as any)?.employees as Employee[] | undefined;
+    return rp || [];
+  });
 
-  // Default employees jika tidak ada props
-  const defaultEmployees = [
-    { name: 'Andi Pratama', department: 'Marketing', avatar: 'https://i.pravatar.cc/150?img=1', mood: 1 },
-    { name: 'Maya Sari', department: 'IT', avatar: 'https://i.pravatar.cc/150?img=2', mood: 1 },
-    { name: 'Budi Santoso', department: 'Finance', avatar: 'https://i.pravatar.cc/150?img=3', mood: 1 },
-    { name: 'Andi Pratama', department: 'Marketing', avatar: 'https://i.pravatar.cc/150?img=4', mood: 2 },
-    { name: 'Maya Sari', department: 'IT', avatar: 'https://i.pravatar.cc/150?img=5', mood: 3 },
-    { name: 'Budi Santoso', department: 'Finance', avatar: 'https://i.pravatar.cc/150?img=6', mood: 0 },
-    { name: 'Andi Pratama', department: 'Marketing', avatar: 'https://i.pravatar.cc/150?img=7', mood: 4 },
-    { name: 'Maya Sari', department: 'IT', avatar: 'https://i.pravatar.cc/150?img=8', mood: 5 },
-    { name: 'Budi Santoso', department: 'Finance', avatar: 'https://i.pravatar.cc/150?img=9', mood: 5 },
-  ];
-
-  const employees = routeEmployees || defaultEmployees;
+  useEffect(() => {
+    const load = async () => {
+      if (employees.length > 0) return; // sudah dapat dari route
+      if (!user?.space_id) return;
+      try {
+        const karys = await ds.getKaryawansBySpace(user.space_id);
+        const ids = (karys || []).map((k: any) => k.id);
+        const latestMap = await ds.getLatestMoodsForEmployees(ids);
+        const mapped = (karys || []).map((k: any) => ({
+          name: k.name || k.email || 'Karyawan',
+          department: '-',
+          avatar: k.avatar_url || 'https://i.pravatar.cc/150?img=1',
+          mood: latestMap[k.id]?.mood || 'Netral',
+        }));
+        setEmployees(mapped);
+      } catch (e) {
+        // ignore for now
+      }
+    };
+    load();
+  }, [user?.space_id]);
 
   return (
     <View style={{ flex: 1, backgroundColor: '#fff' }}>
@@ -66,7 +80,7 @@ export default function ListKaryawanScreen() {
             name={emp.name}
             department={emp.department}
             avatar={emp.avatar}
-            mood={emp.mood as any}
+            mood={(emp.mood as any) || 'Netral'}
             onPress={() => (navigation as any).navigate('DetailKaryawanScreen', { employee: emp })}
           />
         ))}

@@ -67,7 +67,7 @@ export class AuthDataSource {
       const appUser = insertedRows?.[0] ?? null;
       return { authUser: user, appUser, session };
     } catch (error) {
-      console.error('💥 Signup failed:', error);
+      console.error('[Auth] Signup failed:', error);
       throw error;
     }
   }
@@ -182,7 +182,7 @@ export class AuthDataSource {
       if (!this.isValidEmail(cleanEmail)) {
         throw new Error(`Invalid email format: ${cleanEmail}`);
       }
-      const { user: updatedAuth, error: authErr } = await (supabase.auth as any).update({ email: cleanEmail });
+      const { error: authErr } = await (supabase.auth as any).update({ email: cleanEmail });
       if (authErr) throw authErr;
       // Note: when email confirmation is enabled, user must confirm before email is active
     }

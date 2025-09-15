@@ -17,10 +17,10 @@ export default function Step3Selesai({ step, onBack, onFinish }: Props) {
         title="Selesai"
         step={step}
         subtitle="Pendaftaran Berhasil"
-        desc="Akun Anda siap digunakan, silakan login"
+        desc="Akun Anda siap digunakan. Lanjut ke pengaturan ruang kerja."
       />
       <View className="mt-6">
-        <Button text="Ke Halaman Login" onPress={onFinish} margin="0" />
+        <Button text="Lanjutkan" onPress={onFinish} margin="0" />
       </View>
     </View>
   );

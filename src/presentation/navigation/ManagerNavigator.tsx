@@ -6,6 +6,7 @@ import PengaturanKaryawanScreen from '../screens/karyawan/PengaturanKaryawanScre
 import ListKaryawanScreen from '../screens/manager/ListKaryawanScreen.tsx';
 import CBITestScreen from '../screens/cbiTest/CBITestScreen';
 import DetailKaryawanScreen from '../screens/manager/DetailKaryawan';
+import ProfileKaryawan from '../screens/profile/ProfileScreen';
 import { NavbarManager } from '../components/manager/NavbarManager';
 import { CBIProvider } from '../contexts/CBIContext';
 import { CBIRepositoryImpl } from '../../data/repositories/CBIRepositoryImpl';
@@ -47,6 +48,7 @@ export default function ManagerNavigator() {
         {/* Screen lain yang tidak menampilkan tab bar bisa ditambah di sini */}
         <Stack.Screen name="ListKaryawanScreen" component={ListKaryawanScreen} />
         <Stack.Screen name="DetailKaryawanScreen" component={DetailKaryawanScreen} />
+        <Stack.Screen name="ProfileScreen" component={ProfileKaryawan} />
         {/* <Stack.Screen name="DetailManagerScreen" component={DetailManagerScreen} /> */}
       </Stack.Navigator>
     </CBIProvider>

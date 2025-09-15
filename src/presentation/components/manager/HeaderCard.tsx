@@ -9,7 +9,7 @@ type HeaderCardProps = {
 
 export default function HeaderCard({ name, department, avatar }: HeaderCardProps) {
   return (
-    <View style={{ backgroundColor: '#10b981', padding: 20, borderBottomLeftRadius: 20, borderBottomRightRadius: 20 }}>
+    <View style={{ backgroundColor: '#00BFA6', paddingTop: 20, paddingHorizontal: 20, paddingBottom: 36, borderBottomLeftRadius: 20, borderBottomRightRadius: 20 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
         <View>
           <Text style={{ color: 'white', fontSize: 18, fontWeight: '600' }}>Halo {name},</Text>

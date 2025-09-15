@@ -1,9 +1,10 @@
-import React from "react";
-import { View, Text, ScrollView, Image, Alert } from "react-native";
+import React, { useState } from "react";
+import { View, Text, ScrollView, Image } from "react-native";
 import { ButtonPengaturan } from "./ButtonPengaturan";
 import { User, LogOut, HelpCircle, Info } from "lucide-react-native";
 import { useAuth } from "../../../contexts/AuthContext";
 import { useNavigation } from "@react-navigation/native";
+import { LogoutModal } from "../../common/LogoutModal";
 
 export const PengaturanKaryawanLayout = () => {
     const navigation = useNavigation<any>();
@@ -13,26 +14,14 @@ export const PengaturanKaryawanLayout = () => {
     const roleLabel = user?.role ?? '-';
     const avatarUrl = user?.avatar_url || 'https://i.pravatar.cc/150?img=44';
 
-    const handleLogout = () => {
-        Alert.alert(
-            "Konfirmasi",
-            "Apakah Anda yakin ingin keluar?",
-            [
-                { text: "Tidak", style: "cancel" },
-                {
-                    text: "Iya",
-                    style: "destructive",
-                    onPress: async () => {
-                        try {
-                            await signOut();
-                        } catch (e) {
-                            // Optional: you may show another alert/toast here
-                        }
-                    },
-                },
-            ],
-            { cancelable: true }
-        );
+    const [showLogout, setShowLogout] = useState(false);
+    const handleLogout = () => setShowLogout(true);
+    const handleConfirmLogout = async () => {
+        try {
+            await signOut();
+        } finally {
+            setShowLogout(false);
+        }
     };
     return (
         <ScrollView className="flex-1 bg-[#F9FAFB]">
@@ -124,6 +113,13 @@ export const PengaturanKaryawanLayout = () => {
                     onPress={handleLogout}
                 />
             </View>
+
+            {/* Logout Confirmation Modal (shared for all roles) */}
+            <LogoutModal
+                visible={showLogout}
+                onCancel={() => setShowLogout(false)}
+                onConfirm={handleConfirmLogout}
+            />
         </ScrollView>
     );
 };

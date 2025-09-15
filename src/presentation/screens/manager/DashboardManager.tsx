@@ -92,7 +92,7 @@ export default function DashboardHRD() {
         avatar={user?.avatar_url || 'https://i.pravatar.cc/150?img=10'}
       />
 
-      <View style={{ padding: 16 }}>
+      <View style={{ padding: 16, marginTop: -24 }}>
         <InsightCard text="Mood divisi marketing cenderung lelah minggu ini. Disarankan HRD mengatur beban kerja atau memberi waktu pemulihan." />
 
         <MoodDistributionCard data={moodData} />
@@ -107,9 +107,9 @@ export default function DashboardHRD() {
           }}
         >
           <Text style={{ fontWeight: '600', fontSize: 16 }}>Mood Karyawan</Text>
-          {employees.length > 0 && (
+          {!noMoodData && (
             <TouchableOpacity onPress={() => (navigation as any).navigate('ListKaryawanScreen', { employees })}>
-              <Text style={{ color: '#10B981', fontSize: 14 }}>
+              <Text style={{ color: '#00BFA6', fontSize: 14 }}>
                 Lihat Semua
               </Text>
             </TouchableOpacity>

@@ -110,7 +110,7 @@ export const MainBox = ({
       const { svg: MoodSvg } = moodConfig[moodType];
       
       return (
-        <View className="bg-white/20 rounded-full w-20 h-20 items-center justify-center">
+        <View className="items-center justify-center w-20 h-20 rounded-full bg-white/20">
           <MoodSvg width={40} height={40} />
         </View>
       );
@@ -174,6 +174,6 @@ export const MainBox = ({
       style={baseStyle}
     >
       {content}
-    </View>
-  );
+  </View>
+);
 };

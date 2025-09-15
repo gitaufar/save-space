@@ -1,6 +1,6 @@
 import React from "react";
 import { Modal, View, Text, TouchableOpacity } from "react-native";
-import LogoutIcon from "../../../assets/icons/logout.svg"; // ganti path sesuai projek kamu
+import { LogOut } from "lucide-react-native";
 
 interface LogoutConfirmationModalProps {
   visible: boolean;
@@ -20,7 +20,7 @@ export const LogoutModal: React.FC<LogoutConfirmationModalProps> = ({
         <View className="bg-white w-80 rounded-2xl p-6 items-center">
           {/* Icon */}
           <View className="bg-red-500 w-16 h-16 rounded-full items-center justify-center mb-4">
-            <LogoutIcon width={28} height={28} fill="#fff" />
+            <LogOut width={28} height={28} color="#fff" strokeWidth={2} />
           </View>
 
           {/* Text */}

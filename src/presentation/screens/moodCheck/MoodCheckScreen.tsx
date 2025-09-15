@@ -1,25 +1,76 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, ScrollView } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { View, Text, TextInput, ScrollView, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { Button } from '../../components/common/Button';
 import { Tips } from '../../components/common/tips'; // Menggunakan komponen Tips dari cbiTest
+import { useAuth } from '../../contexts/AuthContext';
+import { SupabaseDataSource } from '../../../data/datasources/SupabaseDataSource';
+import { getMood } from '../../../domain/usecases/ai/GetMoodUseCase';
 
 export default function MoodCheckScreen() {
   const navigation = useNavigation();
   const [moodNote, setMoodNote] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const { user } = useAuth();
+  const ds = useMemo(() => new SupabaseDataSource(), []);
 
-  const handleSubmit = () => {
-    // Handle submission logic here
-    console.log('Submitted mood note:', moodNote);
-    // Navigate back or to next screen
-    navigation.goBack();
+  const normalizeMood = (label: string) => {
+    const t = String(label || '').trim().toLowerCase();
+    // Map to canonical display names used in Manager dashboard color map
+    const map: Record<string, string> = {
+      stress: 'Stress',
+      marah: 'Marah',
+      sedih: 'Sedih',
+      lelah: 'Lelah',
+      netral: 'Netral',
+      tenang: 'Tenang',
+      senang: 'Senang',
+    };
+    return map[t] || (t.charAt(0).toUpperCase() + t.slice(1));
+  };
+
+  const handleSubmit = async () => {
+    if (!user?.id) {
+      Alert.alert('Error', 'Anda belum masuk.');
+      return;
+    }
+    if (moodNote.trim().length < minCharacters) return;
+    setSubmitting(true);
+    try {
+      // 1) Predict mood via AI service
+      const prediction = await getMood(moodNote.trim());
+      const moodLabel = normalizeMood(prediction?.predictedMood || 'Netral');
+
+      // 2) Save to mood_responses
+      await ds.addMoodResponse({
+        employee_id: user.id,
+        mood: moodLabel,
+        response_text: moodNote.trim(),
+      });
+
+      // 3) Create AI daily insight for today
+      const insight = `Berdasarkan analisis AI, mood Anda hari ini: ${moodLabel} (keyakinan ${prediction?.confidence ?? '-'}). ` +
+        'Pertahankan kebiasaan positif dan kelola beban kerja agar tetap seimbang.';
+      await ds.createAIInsight({
+        employee_id: user.id,
+        insight_text: insight,
+        mood_summary: moodLabel,
+      });
+
+      Alert.alert('Tersimpan', 'Mood berhasil dikirim dan insight dibuat.');
+      navigation.goBack();
+    } catch (e: any) {
+      Alert.alert('Gagal', e?.message || 'Tidak dapat menyimpan mood.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   // Count characters
   const characterCount = moodNote.length;
-  const minCharacters = 50;
+  const minCharacters = 1;
   const maxCharacters = 500;
 
   return (
@@ -76,9 +127,7 @@ export default function MoodCheckScreen() {
               />
               
               <View className="flex-row justify-between items-center mt-2">
-                <Text className="text-gray-500 text-xs">
-                  Minimal {minCharacters} karakter
-                </Text>
+                <Text className="text-gray-500 text-xs">Minimal {minCharacters} karakter</Text>
                 <Text className="text-gray-500 text-xs">
                   {characterCount}/{maxCharacters}
                 </Text>
@@ -92,7 +141,8 @@ export default function MoodCheckScreen() {
           <Button
             text="Selesai"
             onPress={handleSubmit}
-            loading={characterCount < minCharacters}
+            loading={submitting}
+            disabled={characterCount < minCharacters}
             padding="py-4 px-6"
             margin="mt-4 mb-8 mx-0"
             rounded="rounded-md"

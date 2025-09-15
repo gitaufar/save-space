@@ -376,7 +376,7 @@ export class SupabaseDataSource {
   // === CBI TEST ===
   async getCBITestByEmployee(employeeId: string) {
     const { data, error } = await supabase
-      .from('cbitest')
+      .from('cbi_test')
       .select('*')
       .eq('employee_id', employeeId)
       .order('created_at', { ascending: false }) // biar urut dari terbaru
@@ -389,7 +389,7 @@ export class SupabaseDataSource {
 
   async markCBITestAsFinished(id: string) {
     const { data, error } = await supabase
-      .from('cbitest')
+      .from('cbi_test')
       .update({ finished: true })
       .eq('id', id)
       .select()

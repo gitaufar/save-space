@@ -1,4 +1,4 @@
-export const BASE_URL_MOOD = 'http://10.10.3.203:8000/predict_mood';
+export const BASE_URL_MOOD = 'https://hologymoodapi-production.up.railway.app/predict_mood';
 
 export const CBI_QUESTION_PERSONAL = [
   "Seberapa sering Anda merasa lelah?",

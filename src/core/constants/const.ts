@@ -28,3 +28,49 @@ export const CBI_QUESTION_CLIENT = [
   "Apakah Anda kadang bertanya-tanya berapa lama lagi Anda sanggup terus bekerja dengan klien?"
 ];
 
+// CBI Response options - First set (for frequency questions)
+export const CBI_OPTIONS_FIRST_SET = [
+  { id: 0, text: 'Selalu', value: 0 },
+  { id: 1, text: 'Sering', value: 1 },
+  { id: 2, text: 'Kadang-kadang', value: 2 },
+  { id: 3, text: 'Jarang', value: 3 },
+  { id: 4, text: 'Tidak Pernah / Hampir Tidak Pernah', value: 4 }
+];
+
+// CBI Response options - Second set (for degree questions)
+export const CBI_OPTIONS_SECOND_SET = [
+  { id: 0, text: 'Sangat Tinggi', value: 0 },
+  { id: 1, text: 'Tinggi', value: 1 },
+  { id: 2, text: 'Agak', value: 2 },
+  { id: 3, text: 'Rendah', value: 3 },
+  { id: 4, text: 'Sangat Rendah', value: 4 }
+];
+
+// Question configuration: which questions use which option set
+export const CBI_QUESTION_CONFIG = [
+  // Personal Burnout (0-5): All use first set
+  { subscale: 'personal', optionSet: 'first' },
+  { subscale: 'personal', optionSet: 'first' },
+  { subscale: 'personal', optionSet: 'first' },
+  { subscale: 'personal', optionSet: 'first' },
+  { subscale: 'personal', optionSet: 'first' },
+  { subscale: 'personal', optionSet: 'first' },
+  
+  // Work Burnout (6-12): Mixed sets
+  { subscale: 'work', optionSet: 'second' },    // Q7: emotional exhaustion (degree)
+  { subscale: 'work', optionSet: 'first' },     // Q8: burnt out (frequency)
+  { subscale: 'work', optionSet: 'first' },     // Q9: frustrate (frequency)
+  { subscale: 'work', optionSet: 'second' },    // Q10: worn out end of day (degree)
+  { subscale: 'work', optionSet: 'second' },    // Q11: exhausted morning (degree)
+  { subscale: 'work', optionSet: 'second' },    // Q12: every hour tiring (degree)
+  { subscale: 'work', optionSet: 'first' },     // Q13: energy for family (frequency) - REVERSE
+  
+  // Client Burnout (13-18): Mixed sets
+  { subscale: 'client', optionSet: 'second' },  // Q14: hard to work (degree)
+  { subscale: 'client', optionSet: 'second' },  // Q15: drain energy (degree)
+  { subscale: 'client', optionSet: 'second' },  // Q16: frustrating (degree)
+  { subscale: 'client', optionSet: 'second' },  // Q17: give more than get (degree)
+  { subscale: 'client', optionSet: 'first' },   // Q18: tired of working (frequency)
+  { subscale: 'client', optionSet: 'first' }    // Q19: wonder how long (frequency)
+];
+

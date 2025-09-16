@@ -22,12 +22,11 @@ export class CBIRepositoryImpl implements CBIRepository {
 
   async getCBITestByEmployeeId(employeeId: string): Promise<CBITest | null> {
     try {
-      // This method would need to be implemented in SupabaseDataSource if needed
-      // For now, returning null as a placeholder
-      return null;
+      const result = await this.supabaseDataSource.getCBITestByEmployee(employeeId);
+      return result;
     } catch (error) {
       console.error('Error getting CBI test by employee ID:', error);
-      throw error;
+      return null; // Return null if not found instead of throwing
     }
   }
 
@@ -38,6 +37,16 @@ export class CBIRepositoryImpl implements CBIRepository {
       throw new Error('updateCBITest not implemented yet');
     } catch (error) {
       console.error('Error updating CBI test:', error);
+      throw error;
+    }
+  }
+
+  async markCBITestAsFinished(id: string, personalBurnout: number, workBurnout: number, clientBurnout: number): Promise<CBITest> {
+    try {
+      const result = await this.supabaseDataSource.markCBITestAsFinished(id, clientBurnout, personalBurnout, workBurnout);
+      return result;
+    } catch (error) {
+      console.error('Error marking CBI test as finished:', error);
       throw error;
     }
   }

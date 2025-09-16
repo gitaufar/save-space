@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { ScrollView, View, Text, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import HeaderCard from '../../components/manager/HeaderCard';
@@ -6,61 +6,17 @@ import InsightCard from '../../components/manager/InsightCard';
 import MoodKaryawanNull from '../../../assets/hrd/mood_karyawan_null.svg'; // svg ilustrasi
 import MoodDistributionCard from '../../components/manager/MoodDistributionCard';
 import EmployeeMoodCard from '../../components/manager/EmployeeMoodCard';
+import { useSpace } from '../../contexts/SpaceContext';
+import { useEmployees } from '../../contexts/EmployeeContext';
 import { useAuth } from '../../contexts/AuthContext';
-import { SupabaseDataSource } from '../../../data/datasources/SupabaseDataSource';
 
 export default function DashboardHRD() {
   const navigation = useNavigation();
   const { user } = useAuth();
-  const ds = useMemo(() => new SupabaseDataSource(), []);
-  const [employees, setEmployees] = useState<{
-    id: string;
-    name: string;
-    department: string;
-    avatar: string;
-    mood?: any | null;
-  }[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [spaceLabel, setSpaceLabel] = useState<string>('');
+  const { currentSpace } = useSpace();
+  const { employees, loading } = useEmployees();
 
-  useEffect(() => {
-    const load = async () => {
-      if (!user?.space_id) return;
-      setLoading(true);
-      try {
-        // Ambil semua karyawan di space ini
-        const karys = await ds.getKaryawansBySpace(user.space_id);
-        const ids = (karys || []).map((k: any) => k.id);
-        // Ambil mood terbaru untuk setiap karyawan
-        const latestMap = await ds.getLatestMoodsForEmployees(ids);
-        const mapped = (karys || []).map((k: any) => ({
-          id: k.id,
-          name: k.name || k.email || 'Karyawan',
-          department: '-',
-          avatar: k.avatar_url || 'https://i.pravatar.cc/150?img=1',
-          mood: latestMap[k.id]?.mood || null,
-        }));
-        setEmployees(mapped);
-      } catch (e) {
-        // ignore for now or add toast
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
-  }, [user?.space_id, ds]);
-
-  useEffect(() => {
-    const loadSpace = async () => {
-      try {
-        if (!user?.space_id) return;
-        const sp = await ds.getSpaceById(user.space_id);
-        const label = sp?.name || 'Ruang Kerja';
-        setSpaceLabel(label);
-      } catch {}
-    };
-    loadSpace();
-  }, [user?.space_id, ds]);
+  const spaceLabel = currentSpace?.name || 'Ruang Kerja';
 
   const noMoodData = employees.length === 0 || employees.every(emp => !emp.mood);
 

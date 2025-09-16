@@ -1,10 +1,9 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import EmployeeMoodCard from '../../components/manager/EmployeeMoodCard';
 import { ArrowLeft } from 'lucide-react-native'; // kalau pakai lucide-react-native
-import { useAuth } from '../../contexts/AuthContext';
-import { SupabaseDataSource } from '../../../data/datasources/SupabaseDataSource';
+import { useEmployees } from '../../contexts/EmployeeContext';
 
 type Employee = {
   name: string;
@@ -13,41 +12,26 @@ type Employee = {
   mood: number;
 };
 
-type ListKaryawanScreenProps = {
-  employees?: Employee[];
-};
-
 export default function ListKaryawanScreen() {
   const navigation = useNavigation();
   const route = useRoute();
-  const { user } = useAuth();
-  const ds = useMemo(() => new SupabaseDataSource(), []);
-  const [employees, setEmployees] = useState<Employee[]>(() => {
-    const rp = (route.params as any)?.employees as Employee[] | undefined;
-    return rp || [];
-  });
-
-  useEffect(() => {
-    const load = async () => {
-      if (employees.length > 0) return; // sudah dapat dari route
-      if (!user?.space_id) return;
-      try {
-        const karys = await ds.getKaryawansBySpace(user.space_id);
-        const ids = (karys || []).map((k: any) => k.id);
-        const latestMap = await ds.getLatestMoodsForEmployees(ids);
-        const mapped = (karys || []).map((k: any) => ({
-          name: k.name || k.email || 'Karyawan',
-          department: '-',
-          avatar: k.avatar_url || 'https://i.pravatar.cc/150?img=1',
-          mood: latestMap[k.id]?.mood || 'Netral',
-        }));
-        setEmployees(mapped);
-      } catch (e) {
-        // ignore for now
-      }
-    };
-    load();
-  }, [user?.space_id]);
+  const { employees: contextEmployees } = useEmployees();
+  
+  // Ambil employees dari route params atau dari context
+  const employees = useMemo(() => {
+    const routeEmployees = (route.params as any)?.employees as Employee[] | undefined;
+    if (routeEmployees && routeEmployees.length > 0) {
+      return routeEmployees;
+    }
+    
+    // Convert dari context employees ke format yang dibutuhkan screen ini
+    return contextEmployees.map(emp => ({
+      name: emp.name,
+      department: emp.department,
+      avatar: emp.avatar,
+      mood: emp.mood || 'Netral',
+    }));
+  }, [route.params, contextEmployees]);
 
   return (
     <View style={{ flex: 1, backgroundColor: '#fff' }}>

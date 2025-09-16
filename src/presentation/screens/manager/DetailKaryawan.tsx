@@ -8,6 +8,7 @@ import { RiwayatMood } from "../../components/karyawan/Beranda/RiwayatMood";
 import { CBITestCard } from "../../components/manager/CBITestCard";
 import { useDataSource } from "../../contexts/DataSourceContext";
 import { CBICalculation } from "../../../core/utils/CBICalculation";
+import { supabase } from "../../../core/utils/SupabaseClient";
 
 type Employee = {
   id: string;
@@ -88,6 +89,23 @@ export default function DetailKaryawanScreen() {
     return () => { active = false; };
   }, [currentEmployee.id, dataSource]);
 
+  // Realtime (Supabase v1): listen for evaluations for this employee
+  useEffect(() => {
+    if (!currentEmployee.id) return;
+    const handler = async () => {
+      try {
+        const ev = await dataSource.getLatestEvaluationByEmployeeToday(currentEmployee.id);
+        setEmployeeEvaluation(ev?.evaluation_text || "");
+      } catch {}
+    };
+    const sub: any = supabase
+      .from(`evaluations:employee_id=eq.${currentEmployee.id}`)
+      .on('INSERT', handler)
+      .on('UPDATE', handler)
+      .subscribe();
+    return () => { try { supabase.removeSubscription(sub); } catch {} };
+  }, [currentEmployee.id, dataSource]);
+
   return (
     <View className="flex-1 bg-white">
       {/* Header */}
@@ -131,8 +149,8 @@ export default function DetailKaryawanScreen() {
         {cbiSummary !== null ? (
           <CBITestCard score={cbiSummary} label={cbiLabel} />
         ) : (
-          <View className="bg-white rounded-xl p-4 border border-gray-200 mb-4">
-            <View className="flex-row items-center mb-2 justify-between">
+          <View className="p-4 mb-4 bg-white border border-gray-200 rounded-xl">
+            <View className="flex-row items-center justify-between mb-2">
               <Text className="ml-2 text-lg font-semibold text-gray-900">CBI Test Result</Text>
               <View style={{ width: 24 }} />
             </View>

@@ -5,11 +5,15 @@ import { MainBox, MainBoxType } from "./MainBox";
 import WelcomeIcon from "../../../../assets/karyawan/welcome_icon.svg"; // Perhatikan path
 import MoodIcon from "../../../../assets/karyawan/mood_icon.svg"       // Perhatikan path
 import CBIIcon from "../../../../assets/karyawan/cbi_icon.svg";         // Perhatikan path
+import AILampIcon from "../../../../assets/karyawan/ai_lamp.svg";   // Icon untuk AI Insight
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { RiwayatMood } from "./RiwayatMood";
 import { AIDailyInsight } from "./AIDailyInsight";
 import { useAuth } from "../../../contexts/AuthContext";
-import { SupabaseDataSource } from "../../../../data/datasources/SupabaseDataSource";
+import { useSpace } from "../../../contexts/SpaceContext";
+import { useCBI } from "../../../contexts/CBIContext";
+import { useAIInsight } from "../../../contexts/AIInsightContext";
+import { useMood } from "../../../contexts/MoodContext";
 
 export const mainBoxDefaultData = {
   [MainBoxType.WELCOME]: {
@@ -29,21 +33,78 @@ export const mainBoxDefaultData = {
     paragraph: "Ikuti CBI Test untuk memahami kondisi kerja Anda",
     image: <CBIIcon width={120} height={120} />,
     onPress: () => console.log("CBI test pressed")
+  },
+  [MainBoxType.AI_INSIGHT]: {
+    title: "AI Daily Insight",
+    paragraph: "Wawasan AI berdasarkan mood Anda hari ini",
+    image: <AILampIcon width={120} height={120} />,
+    onPress: () => console.log("AI insight pressed")
   }
 };
 
 export const DashboardKaryawanLayout = () => {
     const navigation = useNavigation();
     const { user } = useAuth();
+    const { currentSpace } = useSpace();
+    const { hasPendingCBI, refreshCBIStatus } = useCBI();
+    const { currentInsight: aiInsight, loading: aiLoading, refreshInsight } = useAIInsight();
+    const { hasMoodToday, refreshMoodStatus } = useMood();
     
     // State untuk data yang bisa berubah
     const [mainBoxData, setMainBoxData] = useState(mainBoxDefaultData);
-    const [aiInsight, setAiInsight] = useState<string | null>(null);
-    const [aiLoading, setAiLoading] = useState<boolean>(false);
     const [workStartMinutes, setWorkStartMinutes] = useState<number>(9 * 60); // default 09:00
-    const [hasPendingCBI, setHasPendingCBI] = useState<boolean>(false);
     const [currentIndex, setCurrentIndex] = useState<number>(0);
     const sliderRef = useRef<ScrollView | null>(null);
+    
+    // Function untuk mendapatkan MainBox type berdasarkan waktu dan kondisi user
+    const getCurrentMainBoxType = (): MainBoxType => {
+        const now = new Date();
+        const currentHour = now.getHours();
+        const currentMinutes = currentHour * 60 + now.getMinutes();
+        const workStartHour = Math.floor(workStartMinutes / 60);
+        
+        console.log('🕐 Current time:', `${currentHour}:${now.getMinutes().toString().padStart(2, '0')}`);
+        console.log('🏢 Work start time:', `${workStartHour}:${(workStartMinutes % 60).toString().padStart(2, '0')}`);
+        console.log('😊 Has mood today:', hasMoodToday);
+        
+        // Jam 6 pagi sampai jam masuk kerja = WELCOME
+        if (currentHour >= 6 && currentMinutes < workStartMinutes) {
+            console.log('📅 Showing WELCOME (before work hours)');
+            return MainBoxType.WELCOME;
+        }
+        
+        // Setelah jam masuk kerja
+        if (currentMinutes >= workStartMinutes) {
+            // Jika belum mood check hari ini = MOOD_CHECK
+            if (!hasMoodToday) {
+                console.log('😊 Showing MOOD_CHECK (work time, no mood yet)');
+                return MainBoxType.MOOD_CHECK;
+            }
+            
+            // Jika sudah mood check = AI_INSIGHT
+            console.log('🤖 Showing AI_INSIGHT (work time, mood done)');
+            return MainBoxType.AI_INSIGHT;
+        }
+        
+        // Default fallback (sebelum jam 6 pagi)
+        console.log('🌙 Showing WELCOME (early morning)');
+        return MainBoxType.WELCOME;
+    };
+    
+    // Function untuk mendapatkan data yang akan ditampilkan
+    const getDisplayData = () => {
+        const currentType = getCurrentMainBoxType();
+        
+        // Buat array berdasarkan kondisi
+        const displayItems = [{ type: currentType }];
+        
+        // Tambahkan CBI Test jika ada pending
+        if (hasPendingCBI) {
+            displayItems.push({ type: MainBoxType.CBI_TEST });
+        }
+        
+        return displayItems;
+    };
     
     // Handler untuk navigasi ke halaman mood check
     const handleMoodCheck = () => {
@@ -72,80 +133,41 @@ export const DashboardKaryawanLayout = () => {
 
     // Tidak perlu fetch space lagi; ambil nama & role dari app_users via AuthContext
 
-    // Ambil AI Daily Insight terbaru hari ini untuk user (app_users.id)
-    useEffect(() => {
-      let active = true;
-      async function loadInsight() {
-        if (!user?.id) return;
-        setAiLoading(true);
-        try {
-          const ds = new SupabaseDataSource();
-          const latest = await ds.getLatestAIInsightByEmployeeToday(user.id);
-          if (active) setAiInsight(latest?.insight_text ?? null);
-        } catch (e) {
-          if (active) setAiInsight(null);
-        } finally {
-          if (active) setAiLoading(false);
-        }
-      }
-      loadInsight();
-      return () => { active = false; };
-    }, [user?.id]);
-
-    // Refetch insight ketika dashboard kembali fokus
+    // Refetch insight, CBI status, dan mood status ketika dashboard kembali fokus
     useFocusEffect(
       React.useCallback(() => {
-        let active = true;
-        async function refetch() {
-          if (!user?.id) return;
-          setAiLoading(true);
-          try {
-            const ds = new SupabaseDataSource();
-            const latest = await ds.getLatestAIInsightByEmployeeToday(user.id);
-            if (active) setAiInsight(latest?.insight_text ?? null);
-          } catch (e) {
-            if (active) setAiInsight(null);
-          } finally {
-            if (active) setAiLoading(false);
-          }
-        }
-        refetch();
-        return () => { active = false; };
-      }, [user?.id])
+        refreshInsight();
+        refreshCBIStatus();
+        refreshMoodStatus();
+      }, [refreshInsight, refreshCBIStatus, refreshMoodStatus])
     );
 
-    // Ambil jam kerja dari space dan parse waktu mulai
+    // Parse waktu mulai dari space work_hours
     useEffect(() => {
-      let active = true;
-      async function loadWorkHours() {
-        if (!user?.space_id) return;
-        try {
-          const ds = new SupabaseDataSource();
-          const space = await ds.getSpaceById(user.space_id);
-          const start = parseStartMinutes(space?.work_hours);
-          if (active) setWorkStartMinutes(start);
-        } catch {}
-      }
-      loadWorkHours();
-      return () => { active = false; };
-    }, [user?.space_id]);
-
-    // Cek apakah ada CBI Test yang belum selesai untuk user
-    useEffect(() => {
-      let active = true;
-      async function loadCBI() {
-        if (!user?.id) return;
-        try {
-          const ds = new SupabaseDataSource();
-          const test = await ds.getCBITestByEmployee(user.id);
-          if (active) setHasPendingCBI(Boolean(test && test.finished === false));
-        } catch {
-          if (active) setHasPendingCBI(false);
+        if (currentSpace?.work_hours) {
+            const start = parseStartMinutes(currentSpace.work_hours);
+            setWorkStartMinutes(start);
         }
-      }
-      loadCBI();
-      return () => { active = false; };
-    }, [user?.id]);
+    }, [currentSpace?.work_hours]);
+
+    // Override data default dengan handlers
+    useEffect(() => {
+      setMainBoxData(prev => ({
+        ...prev,
+        [MainBoxType.MOOD_CHECK]: {
+          ...prev[MainBoxType.MOOD_CHECK],
+          onPress: handleMoodCheck
+        },
+        [MainBoxType.CBI_TEST]: {
+          ...prev[MainBoxType.CBI_TEST],
+          onPress: handleCBITest
+        },
+        [MainBoxType.AI_INSIGHT]: {
+          ...prev[MainBoxType.AI_INSIGHT],
+          paragraph: aiInsight || "Wawasan AI berdasarkan mood Anda hari ini"
+        }
+      }));
+    }, [aiInsight]);
 
     // Helper: parse start time (minutes after midnight) from work_hours string
     function parseStartMinutes(workHours?: string): number {
@@ -161,33 +183,27 @@ export const DashboardKaryawanLayout = () => {
       }
     }
 
-    // Time-based visibility
-    const nowMinutes = (() => { const d = new Date(); return d.getHours() * 60 + d.getMinutes(); })();
-    const showWelcome = nowMinutes < workStartMinutes;
-    const showMoodCheck = nowMinutes >= workStartMinutes;
-    
-    const activeMainBoxes: Array<{ type: MainBoxType; key: string }> = [];
-    if (showWelcome) activeMainBoxes.push({ type: MainBoxType.WELCOME, key: 'welcome' });
-    if (showMoodCheck) activeMainBoxes.push({ type: MainBoxType.MOOD_CHECK, key: 'mood' });
-    if (hasPendingCBI) activeMainBoxes.push({ type: MainBoxType.CBI_TEST, key: 'cbi' });
+    // Get dynamic display data
+    const displayItems = getDisplayData();
 
+    // Auto scroll effect untuk multiple items
     useEffect(() => {
-      if (activeMainBoxes.length <= 1) return;
+      if (displayItems.length <= 1) return;
       const w = Dimensions.get('window').width;
       const id = setInterval(() => {
         setCurrentIndex(prev => {
-          const next = (prev + 1) % activeMainBoxes.length;
+          const next = (prev + 1) % displayItems.length;
           sliderRef.current?.scrollTo({ x: next * w, animated: true });
           return next;
         });
       }, 5000);
       return () => clearInterval(id);
-    }, [activeMainBoxes.length]);
+    }, [displayItems.length]);
 
     const onMomentumEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
       const w = Dimensions.get('window').width;
       const idx = Math.round((e.nativeEvent.contentOffset.x || 0) / w);
-      setCurrentIndex(Math.max(0, Math.min(idx, activeMainBoxes.length - 1)));
+      setCurrentIndex(Math.max(0, Math.min(idx, displayItems.length - 1)));
     };
     
     return (
@@ -211,7 +227,7 @@ export const DashboardKaryawanLayout = () => {
             </View>
             
             <View className="px-0">
-                {activeMainBoxes.length > 0 && (
+                {displayItems.length > 0 && (
                   <ScrollView
                     ref={sliderRef}
                     horizontal
@@ -219,8 +235,8 @@ export const DashboardKaryawanLayout = () => {
                     showsHorizontalScrollIndicator={false}
                     onMomentumScrollEnd={onMomentumEnd}
                   >
-                    {activeMainBoxes.map(item => (
-                      <View key={item.key} style={{ width: Dimensions.get('window').width }}>
+                    {displayItems.map((item, index) => (
+                      <View key={`${item.type}-${index}`} style={{ width: Dimensions.get('window').width }}>
                         <View className="px-5">
                           <MainBox
                             title={mainBoxData[item.type].title}
@@ -234,6 +250,21 @@ export const DashboardKaryawanLayout = () => {
                     ))}
                   </ScrollView>
                 )}
+
+                {/* Dots indicator */}
+                {displayItems.length > 1 && (
+                  <View className="flex-row justify-center mt-4 space-x-2">
+                    {displayItems.map((_, index) => (
+                      <View 
+                        key={index}
+                        className={`w-2 h-2 rounded-full ${
+                          index === currentIndex ? 'bg-primary' : 'bg-gray-300'
+                        }`}
+                      />
+                    ))}
+                  </View>
+                )}
+                
                 <RiwayatMood
                  />
                 <AIDailyInsight insightText={aiInsight ?? undefined} loading={aiLoading} />

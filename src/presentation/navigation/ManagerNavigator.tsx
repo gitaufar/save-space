@@ -40,7 +40,10 @@ function MainTabNavigator() {
 // Stack Navigator utama yang berisi TabNavigator dan screen lainnya
 export default function ManagerNavigator() {
   return (
-    <CBIProvider createCBITestForSpaceUseCase={createCBITestForSpaceUseCase}>
+    <CBIProvider 
+      createCBITestForSpaceUseCase={createCBITestForSpaceUseCase}
+      cbiRepository={cbiRepository}
+    >
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {/* Tab Navigator sebagai screen pertama */}
         <Stack.Screen name="MainTab" component={MainTabNavigator} />

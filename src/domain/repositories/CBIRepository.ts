@@ -16,4 +16,6 @@ export interface CBIRepository {
   getCBITestByEmployeeId(employeeId: string): Promise<CBITest | null>;
   
   updateCBITest(testId: string, updates: Partial<CBITest>): Promise<CBITest>;
+  
+  markCBITestAsFinished(id: string, personalBurnout: number, workBurnout: number, clientBurnout: number): Promise<CBITest>;
 }

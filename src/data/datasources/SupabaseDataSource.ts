@@ -282,6 +282,25 @@ export class SupabaseDataSource {
     return Object.values(latestByEmployee);
   }
 
+  // Get today's mood response for a specific user
+  async getMoodResponseByUserToday(userId: string, dateString: string) {
+    const startOfDay = `${dateString}T00:00:00.000Z`;
+    const endOfDay = `${dateString}T23:59:59.999Z`;
+    
+    const { data, error } = await supabase
+      .from('mood_responses')
+      .select('*')
+      .eq('employee_id', userId)
+      .gte('created_at', startOfDay)
+      .lte('created_at', endOfDay)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (error) throw error;
+    return data;
+  }
+
   // ==== AI INSIGHTS ====
   async createAIInsight(data: {
     employee_id: string;
@@ -379,6 +398,7 @@ export class SupabaseDataSource {
       .from('cbi_test')
       .select('*')
       .eq('employee_id', employeeId)
+      .eq('finished', false) // Only get unfinished tests
       .order('created_at', { ascending: false }) // biar urut dari terbaru
       .limit(1)
       .single();
@@ -387,10 +407,22 @@ export class SupabaseDataSource {
     return data;
   }
 
-  async markCBITestAsFinished(id: string) {
+  async markCBITestAsFinished(id: string, client_burnout: number, personal_burnout: number, work_burnout: number) {
+    // Ensure all scores are integers and calculate summary
+    const personalBurnoutInt = Math.round(personal_burnout);
+    const workBurnoutInt = Math.round(work_burnout);
+    const clientBurnoutInt = Math.round(client_burnout);
+    const summary = Math.round((personalBurnoutInt + workBurnoutInt + clientBurnoutInt) / 3);
+    
     const { data, error } = await supabase
       .from('cbi_test')
-      .update({ finished: true })
+      .update({ 
+        finished: true, 
+        client_burnout: clientBurnoutInt, 
+        personal_burnout: personalBurnoutInt, 
+        work_burnout: workBurnoutInt,
+        summary: summary
+      })
       .eq('id', id)
       .select()
       .single();

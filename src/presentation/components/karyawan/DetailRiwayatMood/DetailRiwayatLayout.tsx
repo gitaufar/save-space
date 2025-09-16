@@ -21,6 +21,20 @@ const getMoodType = (value: number) => {
   return moodTypes[value - 1] as 'stress' | 'marah' | 'sedih' | 'lelah' | 'netral' | 'tenang' | 'senang';
 };
 
+// Convert mood type untuk StatusMoodCard
+const getMoodTypeForCard = (moodType: string): 'Stress' | 'Marah' | 'Sedih' | 'Lelah' | 'Netral' | 'Tenang' | 'Senang' => {
+  const moodMap: { [key: string]: 'Stress' | 'Marah' | 'Sedih' | 'Lelah' | 'Netral' | 'Tenang' | 'Senang' } = {
+    'stress': 'Stress',
+    'marah': 'Marah',
+    'sedih': 'Sedih',
+    'lelah': 'Lelah',
+    'netral': 'Netral',
+    'tenang': 'Tenang',
+    'senang': 'Senang'
+  };
+  return moodMap[moodType] || 'Netral';
+};
+
 interface DetailRiwayatLayoutProps {
   data: MoodData[];
 }
@@ -43,7 +57,7 @@ export const DetailRiwayatLayout: React.FC<DetailRiwayatLayoutProps> = ({ data }
     <ScrollView className="flex-1 px-5">
       <View className="mt-4 mb-8">
         {/* Status Mood Card */}
-        <StatusMoodCard moodType={averageMoodType} />
+        <StatusMoodCard moodType={getMoodTypeForCard(averageMoodType)} />
         
         {/* Mood Entry Cards */}
         {data.map((item) => (

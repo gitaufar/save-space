@@ -1,10 +1,11 @@
 // viewmodels/useCBIViewModel.ts
 import { useState } from 'react';
 import { CreateCBITestForSpaceUseCase } from '../../../domain/usecases/cbi/CreateCBITestForSpaceUseCase';
-import { CBITest } from '../../../domain/repositories/CBIRepository';
+import { CBITest, CBIRepository } from '../../../domain/repositories/CBIRepository';
 
 export function useCBIViewModel(
   createCBITestForSpaceUseCase: CreateCBITestForSpaceUseCase,
+  cbiRepository?: CBIRepository,
 ) {
   const [cbiTests, setCBITests] = useState<CBITest[]>([]);
   const [loading, setLoading] = useState(false);
@@ -30,6 +31,28 @@ export function useCBIViewModel(
     }
   }
 
+  async function markCBITestAsFinished(id: string, personalBurnout: number, workBurnout: number, clientBurnout: number) {
+    try {
+      setLoading(true);
+      setError(null);
+      setSuccess(null);
+      
+      if (!cbiRepository) {
+        throw new Error('CBI Repository not available');
+      }
+      
+      const updatedTest = await cbiRepository.markCBITestAsFinished(id, personalBurnout, workBurnout, clientBurnout);
+      setSuccess('CBI Test berhasil diselesaikan');
+      
+      return updatedTest;
+    } catch (err: any) {
+      setError(err.message || 'Terjadi kesalahan saat menyelesaikan CBI Test');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }
+
   function clearMessages() {
     setError(null);
     setSuccess(null);
@@ -41,6 +64,8 @@ export function useCBIViewModel(
     error,
     success,
     createCBITestForSpace,
+    markCBITestAsFinished,
     clearMessages,
+    cbiRepository, // Expose repository for direct access
   };
 }

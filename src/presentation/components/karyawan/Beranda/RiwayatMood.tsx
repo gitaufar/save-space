@@ -82,7 +82,9 @@ export const RiwayatMood: React.FC<RiwayatMoodProps> = ({
     if (onViewDetail) {
       onViewDetail();
     } else {
-      navigation.navigate('DetailRiwayatMoodScreen' as never);
+      // Kirimkan userId jika tersedia (untuk manager)
+      const params: any = userId ? { userId } : undefined;
+      (navigation as any).navigate('DetailRiwayatMoodScreen', params);
     }
   };
 
@@ -114,7 +116,7 @@ export const RiwayatMood: React.FC<RiwayatMoodProps> = ({
     <View className="w-full bg-white rounded-3xl shadow-md p-6 mb-4 border border-[#E5E7EB]">
       <View className="flex-row items-center mb-4">
         <Logo width={24} height={24} />
-        <Text className="text-[18px] font-bold text-[#111827] ml-2">
+        <Text className="text-[18px] font-bold text-[#111827] ml-2" numberOfLines={1} ellipsizeMode="tail">
           {title}
         </Text>
       </View>

@@ -312,8 +312,12 @@ export class SupabaseDataSource {
 
   // Get today's mood response for a specific user
   async getMoodResponseByUserToday(userId: string, dateString: string) {
-    const startOfDay = `${dateString}T00:00:00.000Z`;
-    const endOfDay = `${dateString}T23:59:59.999Z`;
+    // Use local timezone day bounds
+    const [y, m, d] = dateString.split('-').map((n: string) => parseInt(n, 10));
+    const startDate = new Date(y, (m || 1) - 1, d || 1, 0, 0, 0, 0);
+    const endDate = new Date(y, (m || 1) - 1, d || 1, 23, 59, 59, 999);
+    const startOfDay = startDate.toISOString();
+    const endOfDay = endDate.toISOString();
     
     const { data, error } = await supabase
       .from('mood_responses')
@@ -327,6 +331,27 @@ export class SupabaseDataSource {
 
     if (error) throw error;
     return data;
+  }
+
+  // Get all mood responses for a specific user on a given date
+  async getMoodResponsesByDate(userId: string, dateString: string) {
+    // Use local timezone day bounds
+    const [y, m, d] = dateString.split('-').map((n: string) => parseInt(n, 10));
+    const startDate = new Date(y, (m || 1) - 1, d || 1, 0, 0, 0, 0);
+    const endDate = new Date(y, (m || 1) - 1, d || 1, 23, 59, 59, 999);
+    const startOfDay = startDate.toISOString();
+    const endOfDay = endDate.toISOString();
+
+    const { data, error } = await supabase
+      .from('mood_responses')
+      .select('*')
+      .eq('employee_id', userId)
+      .gte('created_at', startOfDay)
+      .lte('created_at', endOfDay)
+      .order('created_at', { ascending: true });
+
+    if (error) throw error;
+    return data || [];
   }
 
   // ==== AI INSIGHTS ====
@@ -516,5 +541,76 @@ export class SupabaseDataSource {
 
     console.log('CBITest created:', inserted);
     return inserted;
+  }
+
+  // ==== DIVISION / EMPLOYEE EVALUATIONS ====
+  async getLatestDivisionEvaluationToday(spaceId: string) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const { data, error } = await supabase
+      .from('division_evaluasion')
+      .select('*')
+      .eq('space_id', spaceId)
+      .gte('created_at', today.toISOString())
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (error) throw error;
+    return data;
+  }
+
+  async getLatestEvaluationByEmployeeToday(employeeId: string) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const { data, error } = await supabase
+      .from('evaluations')
+      .select('*')
+      .eq('employee_id', employeeId)
+      .gte('created_at', today.toISOString())
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (error) throw error;
+    return data;
+  }
+
+  async createEvaluation(data: { employee_id: string; evaluation_text: string }) {
+    const { data: result, error } = await supabase
+      .from('evaluations')
+      .insert([data])
+      .select()
+      .single();
+    if (error) throw error;
+    return result;
+  }
+
+  // ==== WORK HOURS HELPERS ====
+  // Parse work_hours string in format "HH:mm - HH:mm" into minutes from midnight
+  parseWorkHours(workHours?: string): { start: number; end: number } {
+    try {
+      const text = String(workHours || '').trim();
+      const m = text.match(/(\d{1,2})(?::(\d{2}))?\s*-\s*(\d{1,2})(?::(\d{2}))?/);
+      if (!m) {
+        const startOnly = text.match(/(\d{1,2})(?::(\d{2}))?/);
+        const sh = startOnly ? Math.min(23, Math.max(0, parseInt(startOnly[1], 10))) : 9;
+        const sm = startOnly && startOnly[2] ? Math.min(59, Math.max(0, parseInt(startOnly[2], 10))) : 0;
+        const start = sh * 60 + sm;
+        const end = Math.min(23 * 60 + 59, start + 8 * 60);
+        return { start, end };
+      }
+      const sh = Math.min(23, Math.max(0, parseInt(m[1], 10)));
+      const sm = m[2] ? Math.min(59, Math.max(0, parseInt(m[2], 10))) : 0;
+      const eh = Math.min(23, Math.max(0, parseInt(m[3], 10)));
+      const em = m[4] ? Math.min(59, Math.max(0, parseInt(m[4], 10))) : 0;
+      return { start: sh * 60 + sm, end: eh * 60 + em };
+    } catch {
+      return { start: 9 * 60, end: 17 * 60 };
+    }
+  }
+
+  // Convenience: fetch a space and parse its work_hours
+  async getWorkHoursRangeForSpace(spaceId: string): Promise<{ start: number; end: number }> {
+    const space = await this.getSpaceById(spaceId);
+    return this.parseWorkHours((space as any)?.work_hours);
   }
 }

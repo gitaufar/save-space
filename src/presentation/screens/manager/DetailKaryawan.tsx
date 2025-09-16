@@ -39,6 +39,7 @@ export default function DetailKaryawanScreen() {
   const dataSource = useDataSource();
   const [cbiSummary, setCbiSummary] = useState<number | null>(null);
   const [cbiLabel, setCbiLabel] = useState<string>("CBI Summary");
+  const [employeeEvaluation, setEmployeeEvaluation] = useState<string>("");
 
   useEffect(() => {
     let active = true;
@@ -71,6 +72,22 @@ export default function DetailKaryawanScreen() {
     return () => { active = false; };
   }, [currentEmployee.id, dataSource]);
 
+  // Load latest employee evaluation (today)
+  useEffect(() => {
+    let active = true;
+    async function loadEval() {
+      try {
+        if (!currentEmployee.id) { if(active) setEmployeeEvaluation(""); return; }
+        const ev = await dataSource.getLatestEvaluationByEmployeeToday(currentEmployee.id);
+        if (active) setEmployeeEvaluation(ev?.evaluation_text || "");
+      } catch {
+        if (active) setEmployeeEvaluation("");
+      }
+    }
+    loadEval();
+    return () => { active = false; };
+  }, [currentEmployee.id, dataSource]);
+
   return (
     <View className="flex-1 bg-white">
       {/* Header */}
@@ -92,10 +109,10 @@ export default function DetailKaryawanScreen() {
             className="w-16 h-16 rounded-full"
           />
           <View className="ml-4">
-            <Text className="text-lg font-semibold text-[#111827]">
+            <Text className="text-lg font-semibold text-[#111827]" numberOfLines={1} ellipsizeMode="tail">
               {currentEmployee.name}
             </Text>
-            <Text className="text-gray-500">{currentEmployee.department}</Text>
+            <Text className="text-gray-500" numberOfLines={1} ellipsizeMode="tail">{currentEmployee.department}</Text>
           </View>
         </View>
 
@@ -104,7 +121,7 @@ export default function DetailKaryawanScreen() {
 
         {/* AI Daily Insight */}
         <AIDailyInsight
-          insightText={`${currentEmployee.name} menunjukkan mood ${moodType} hari ini. Disarankan untuk melakukan follow-up dan memberikan dukungan yang tepat.`}
+          insightText={employeeEvaluation || `${currentEmployee.name} menunjukkan mood ${moodType} hari ini. Disarankan untuk melakukan follow-up dan memberikan dukungan yang tepat.`}
         />
 
         {/* Riwayat Mood untuk karyawan ini */}

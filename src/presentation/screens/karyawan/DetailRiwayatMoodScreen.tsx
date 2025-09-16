@@ -1,10 +1,12 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Text, View, TouchableOpacity, Modal, Pressable } from "react-native";
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import { Calendar } from 'react-native-calendars';
 import { NullDetailRiwayatLayout } from "../../components/karyawan/DetailRiwayatMood/NullDetailRiwayatLayout";
 import { DetailRiwayatLayout } from "../../components/karyawan/DetailRiwayatMood/DetailRiwayatLayout";
+import { useAuth } from "../../contexts/AuthContext";
+import { useDataSource } from "../../contexts/DataSourceContext";
 
 // Definisikan mockMoodData di luar komponen
 // Definisikan mockMoodData di luar komponen sesuai interface MoodData
@@ -33,6 +35,10 @@ const mockMoodData = [
 
 export default function DetailRiwayatMoodScreen() {
     const navigation = useNavigation();
+    const route = useRoute();
+    const { user } = useAuth();
+    const dataSource = useDataSource();
+    const routeUserId = (route.params as any)?.userId as string | undefined;
     const [showDatePicker, setShowDatePicker] = useState(false);
     
     // Format tanggal awal (hari ini)
@@ -44,6 +50,11 @@ export default function DetailRiwayatMoodScreen() {
         id: formattedToday,
         label: formatDateForDisplay(today)
     });
+
+    // State data dari backend
+    const [data, setData] = useState<any[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
     
     // Format tanggal untuk Calendar (YYYY-MM-DD)
     function formatDateForCalendar(date: Date): string {
@@ -79,6 +90,57 @@ export default function DetailRiwayatMoodScreen() {
         });
         setShowDatePicker(false);
     };
+
+    // Map mood string to numeric value (1-7)
+    const moodToValue = (mood: string): number => {
+      const map: Record<string, number> = {
+        stress: 1, sedih: 2, marah: 3, netral: 4, tenang: 5, lelah: 6, senang: 7
+      };
+      return map[String(mood || '').toLowerCase()] || 4;
+    };
+
+    const timeLabel = (d: Date) => {
+      const h = d.getHours();
+      return h < 12 ? 'Pagi' : 'Sore';
+    };
+
+    const timeDisplay = (d: Date) => `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+
+    // Fetch data when date or user changes
+    useEffect(() => {
+      let active = true;
+      async function load() {
+        try {
+          setLoading(true); setError(null);
+          const targetUserId = routeUserId || user?.id;
+          if (!targetUserId) { setData([]); return; }
+          const rows = await dataSource.getMoodResponsesByDate(targetUserId, selectedDate.id);
+          const mapped = (rows || []).map((r: any, idx: number) => {
+            const d = new Date(r.created_at);
+            return {
+              id: r.id || String(idx),
+              value: moodToValue(r.mood),
+              date: selectedDate.id,
+              time: timeLabel(d),
+              timeDisplay: timeDisplay(d),
+              note: r.response_text || '',
+              energyLevel: 'sedang' as const,
+              focusLevel: 'baik' as const,
+            };
+          });
+          if (!active) return;
+          setData(mapped);
+        } catch (e: any) {
+          if (!active) return;
+          setError(e?.message || 'Gagal mengambil data');
+          setData([]);
+        } finally {
+          if (active) setLoading(false);
+        }
+      }
+      load();
+      return () => { active = false; };
+    }, [routeUserId, user?.id, selectedDate.id, dataSource]);
     
     return (
         <View className="flex-1 bg-[#FAFAFA]">
@@ -158,8 +220,16 @@ export default function DetailRiwayatMoodScreen() {
                 </TouchableOpacity>
             </Modal>
             
-            {/* Hanya tampilkan DetailRiwayatLayout */}
-            <DetailRiwayatLayout data={mockMoodData} />
+            {/* Tampilkan layout sesuai data */}
+            {loading ? (
+              <View className="px-5">
+                <Text>Memuat...</Text>
+              </View>
+            ) : data.length === 0 ? (
+              <NullDetailRiwayatLayout date={selectedDate.label} />
+            ) : (
+              <DetailRiwayatLayout data={data as any} />
+            )}
         </View>
     );
 }

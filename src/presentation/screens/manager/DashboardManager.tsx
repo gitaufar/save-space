@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import { ScrollView, View, Text, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import HeaderCard from '../../components/manager/HeaderCard';
@@ -9,6 +9,10 @@ import EmployeeMoodCard from '../../components/manager/EmployeeMoodCard';
 import { useSpace } from '../../contexts/SpaceContext';
 import { useEmployees } from '../../contexts/EmployeeContext';
 import { useAuth } from '../../contexts/AuthContext';
+import { useDataSource } from '../../contexts/DataSourceContext';
+import { GeminiRemoteDatasourceImpl } from '../../../data/datasources/GeminiRemoteDataSource';
+import { GeminiRepositoryImpl } from '../../../data/repositories/GeminiRepositoryImpl';
+import { GetResponseGeminiUseCase } from '../../../domain/usecases/ai/GetResponseGeminiUseCase';
 
 export default function DashboardHRD() {
   const navigation = useNavigation();
@@ -16,6 +20,14 @@ export default function DashboardHRD() {
   const { currentSpace } = useSpace();
   const { employees, loading, getEmployeesWithMoods } = useEmployees();
   const employeesWithMood = useMemo(() => getEmployeesWithMoods(), [getEmployeesWithMoods]);
+  const dataSource = useDataSource();
+
+  const [divisionInsight, setDivisionInsight] = useState<string>('');
+  const [divLoading, setDivLoading] = useState(false);
+
+  const geminiDs = useMemo(() => new GeminiRemoteDatasourceImpl(), []);
+  const geminiRepo = useMemo(() => new GeminiRepositoryImpl(geminiDs), [geminiDs]);
+  const gemini = useMemo(() => new GetResponseGeminiUseCase(geminiRepo), [geminiRepo]);
 
   const spaceLabel = currentSpace?.name || 'Ruang Kerja';
 
@@ -41,6 +53,57 @@ export default function DashboardHRD() {
     return Object.keys(counts).map(k => ({ mood: k, value: counts[k], color: colorMap[k] || '#9CA3AF' }));
   }, [employeesWithMood, noMoodData]);
 
+  useEffect(() => {
+    let active = true;
+    async function run() {
+      try {
+        if (!currentSpace?.id) { if (active) setDivisionInsight(''); return; }
+        const total = employees.length;
+        const filled = employeesWithMood.length;
+        if (total === 0) {
+          if (active) setDivisionInsight('Belum ada karyawan dalam space ini.');
+          return;
+        }
+        if (filled < total) {
+          if (active) setDivisionInsight('Belum semua karyawan mengisi mood. Ingatkan tim Anda untuk mendapatkan evaluasi divisi hari ini.');
+          return;
+        }
+        setDivLoading(true);
+        const existing = await dataSource.getLatestDivisionEvaluationToday(currentSpace.id);
+        if (existing?.evaluation_text) {
+          if (active) setDivisionInsight(existing.evaluation_text);
+          return;
+        }
+        const division = currentSpace?.name || '';
+        const workHours = currentSpace?.work_hours || '';
+        const jobDesc = (currentSpace as any)?.job_desc || '';
+        const culture = (currentSpace as any)?.work_culture || '';
+        const counts: Record<string, number> = {};
+        for (const e of employeesWithMood) { const k = String(e.mood); counts[k] = (counts[k] ?? 0) + 1; }
+        const distrText = Object.keys(counts).map(k => `${k}: ${counts[k]}`).join(', ');
+        const prompt = `Anda adalah AI HR Assistant. Buat satu evaluasi divisi (maks 6 kalimat) berdasarkan data berikut:
+Divisi: ${division}
+Jam kerja: ${workHours}
+Budaya kerja: ${culture}
+Job desk: ${jobDesc}
+Distribusi mood hari ini: ${distrText || 'Tidak tersedia'}
+Tulis insight spesifik, ringkas, dan actionable untuk HRD.`;
+        let text = '';
+        try {
+          const res = await gemini.execute(prompt);
+          text = (res?.text || '').trim();
+        } catch {}
+        if (!text) text = 'Evaluasi divisi: tren mood stabil. Lanjutkan monitoring dan komunikasikan kebijakan kerja yang mendukung kesejahteraan tim.';
+        await dataSource.createDivisionEvaluation({ space_id: currentSpace.id, evaluation_text: text });
+        if (active) setDivisionInsight(text);
+      } finally {
+        if (active) setDivLoading(false);
+      }
+    }
+    run();
+    return () => { active = false; };
+  }, [currentSpace?.id, currentSpace?.work_hours, (currentSpace as any)?.work_culture, (currentSpace as any)?.job_desc, employees.length, employeesWithMood]);
+
   return (
     <ScrollView style={{ flex: 1, backgroundColor: '#f3f4f6' }}>
       <HeaderCard
@@ -50,7 +113,7 @@ export default function DashboardHRD() {
       />
 
       <View style={{ padding: 16, marginTop: -24 }}>
-        <InsightCard text="Mood divisi marketing cenderung lelah minggu ini. Disarankan HRD mengatur beban kerja atau memberi waktu pemulihan." />
+        <InsightCard text={divisionInsight || (divLoading ? 'Memuat evaluasi divisi...' : 'Belum semua karyawan mengisi mood. Ingatkan tim Anda untuk mendapatkan evaluasi divisi hari ini.')} />
 
         <MoodDistributionCard data={moodData} />
 

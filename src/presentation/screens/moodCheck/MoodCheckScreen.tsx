@@ -11,6 +11,7 @@ import { GeminiRemoteDatasourceImpl } from '../../../data/datasources/GeminiRemo
 import { GeminiRepositoryImpl } from '../../../data/repositories/GeminiRepositoryImpl';
 import { GetResponseGeminiUseCase } from '../../../domain/usecases/ai/GetResponseGeminiUseCase';
 import { useGeminiViewModel } from '../../viewModels/common/GeminiViewModel';
+import { useMood } from '../../contexts/MoodContext';
 
 export default function MoodCheckScreen() {
   const navigation = useNavigation();
@@ -27,6 +28,7 @@ export default function MoodCheckScreen() {
   const repo = useMemo(() => new GeminiRepositoryImpl(datasource), [datasource]);
   const usecase = useMemo(() => new GetResponseGeminiUseCase(repo), [repo]);
   const { generate, loading: geminiLoading, data: geminiQuestion, error: geminiError } = useGeminiViewModel(usecase);
+  const { refreshMoodStatus } = useMood();
 
   const PRE_PROMPT =
     'Daily Question Sebelum Kerja: Anda adalah AI HR Assistant untuk perusahaan. Tugas Anda adalah membuat satu pertanyaan harian SINGKAT dan MUDAH dipahami yang dikirim ke karyawan sebelum jam kerja dimulai. Pertanyaan ini harus bisa mengukur kondisi mental, energi, dan kesiapan kerja mereka secara emosional. Outputkan 1 pertanyaan saja dalam Bahasa Indonesia dengan nada ramah, profesional, dan suportif. Langsung outputkan pertanyaannya saja';
@@ -51,7 +53,8 @@ export default function MoodCheckScreen() {
   function parseStartMinutes(workHours?: string): number {
     try {
       const text = String(workHours || '').trim();
-      const m = text.match(/(\d{1,2})(?::(\d{2}))?/);
+      // Support HH:mm or HH.mm
+      const m = text.match(/(\d{1,2})(?:(?::|\.)\s*(\d{2}))?/);
       if (!m) return 9 * 60;
       const hh = Math.min(23, Math.max(0, parseInt(m[1], 10)));
       const mm = m[2] ? Math.min(59, Math.max(0, parseInt(m[2], 10))) : 0;
@@ -142,6 +145,34 @@ Outputkan hanya teks insight dalam Bahasa Indonesia.`;
         insight_text: insight,
         mood_summary: moodLabel,
       });
+
+      // Also create an employee evaluation entry for manager detail
+      try {
+        const division = space?.name || '';
+        const workHours = space?.work_hours || '';
+        const jobDesc = space?.job_desc || '';
+        const culture = space?.work_culture || '';
+        const evalPrompt = `Anda adalah AI HR Assistant. Buat ringkasan evaluasi singkat (maks 5 kalimat) untuk karyawan berdasarkan data berikut:
+Divisi: ${division}
+Jam kerja: ${workHours}
+Budaya kerja: ${culture}
+Job desk: ${jobDesc}
+Mood hari ini: ${moodLabel}
+Jawaban harian: "${moodNote.trim()}"
+Berikan observasi singkat yang suportif dan 1-2 saran praktis.`;
+        let evalText = '';
+        try {
+          const r = await usecase.execute(evalPrompt);
+          evalText = (r?.text || '').trim();
+        } catch {}
+        if (!evalText) {
+          evalText = `Evaluasi singkat: ${moodLabel}. Fokus pada keseimbangan kerja dan istirahat. Pertimbangkan prioritas tugas dan komunikasi terbuka dengan tim.`;
+        }
+        await ds.createEvaluation({ employee_id: user.id, evaluation_text: evalText });
+      } catch {}
+
+      // Immediately refresh mood status so MainBox updates without re-login
+      try { await refreshMoodStatus(); } catch {}
 
       Alert.alert('Tersimpan', 'Mood berhasil dikirim dan insight dibuat.');
       navigation.goBack();

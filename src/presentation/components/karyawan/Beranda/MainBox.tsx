@@ -149,8 +149,8 @@ export const MainBox = ({
   const content = (
     <View className="flex-row items-center">
       <View className="items-start justify-center w-1/2">
-        <Text className="text-[18px] font-bold text-white">{title}</Text>
-        <Text className="text-[14px] text-white/80 mt-1">{paragraph}</Text>
+        <Text className="text-[18px] font-bold text-white max-w-full" numberOfLines={2} ellipsizeMode="tail">{title}</Text>
+        <Text className="text-[14px] text-white/80 mt-1 max-w-full" numberOfLines={3} ellipsizeMode="tail">{paragraph}</Text>
         {renderAction()}
       </View>
       <View className="items-end justify-center w-1/2">

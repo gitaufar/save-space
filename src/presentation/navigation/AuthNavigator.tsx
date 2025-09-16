@@ -7,7 +7,7 @@ import RegisterDataScreen from '../screens/auth/RegisterDataScreen';
 export type AuthStackParamList = {
   Login: undefined;
   Register: undefined;
-  RegisterStep: { role: 'manager' | 'karyawan' };
+  RegisterStep: { role: 'Manager' | 'Karyawan' };
 };
 
 // bikin instance Stack

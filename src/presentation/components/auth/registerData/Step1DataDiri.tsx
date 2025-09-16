@@ -60,12 +60,14 @@ export default function Step1DataDiri({
           placeholder="Masukkan nama lengkap"
           value={nama}
           onChangeText={setNama}
+          error={validationErrors?.nama}
         />
         <TextField
           label="Email"
           placeholder="Masukkan email"
           value={email}
           onChangeText={setEmail}
+          error={validationErrors?.email}
         />
         <PasswordField
           label="Password"

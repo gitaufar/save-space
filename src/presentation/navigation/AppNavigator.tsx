@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { NavigationContainer, DefaultTheme } from "@react-navigation/native";
-
 import OnBoardingNavigation from "./OnBoardingNavigation";
 import AuthNavigator from "./AuthNavigator";
 import KaryawanNavigator from "./KaryawanNavigator";
-import HrdNavigator from "./HrdNavigator";
+import ManagerNavigator from "./ManagerNavigator";
 import { useAuth } from "../contexts/AuthContext";
 import SpaceNavigator from "./SpaceNavigator";
 
@@ -20,6 +19,7 @@ const MyTheme = {
 export default function AppNavigator() {
   const [isFirstLaunch, setIsFirstLaunch] = useState<boolean | null>(null);
   const { user, fetchCurrentUser } = useAuth();
+  const [initialSpaceRoute, setInitialSpaceRoute] = useState<"Space" | "NewSpace" | "OldSpace" | null>(null);
 
   useEffect(() => {
     AsyncStorage.getItem("alreadyLaunched").then((value) => {
@@ -34,6 +34,24 @@ export default function AppNavigator() {
     fetchCurrentUser(); // ambil session user dari supabase / storage
   }, [fetchCurrentUser]);
 
+  // Baca hint satu-kali setelah user berubah (mis. selesai register)
+  useEffect(() => {
+    const readPostRegisterRoute = async () => {
+      try {
+        const v = await AsyncStorage.getItem('postRegisterInitialSpaceRoute');
+        if (v) {
+          setInitialSpaceRoute(v as any);
+          await AsyncStorage.removeItem('postRegisterInitialSpaceRoute');
+        } else {
+          setInitialSpaceRoute(null);
+        }
+      } catch {
+        setInitialSpaceRoute(null);
+      }
+    };
+    readPostRegisterRoute();
+  }, [user]);
+
   if (isFirstLaunch === null) {
     return null; // splash screen bisa disini
   }
@@ -46,7 +64,7 @@ export default function AppNavigator() {
         <AuthNavigator />
       ) : !user.space_id ? (
         user.role === "Manager" ? (
-          <SpaceNavigator initialRouteName="Space"/>
+          <SpaceNavigator initialRouteName={(initialSpaceRoute ?? "NewSpace") as any}/>
         ) : (
           <SpaceNavigator initialRouteName="OldSpace"/>
         )
@@ -54,7 +72,7 @@ export default function AppNavigator() {
         // Setelah login atau join/create space, langsung ke dashboard karyawan
         <KaryawanNavigator />
       ) : (
-        <HrdNavigator />
+        <ManagerNavigator />
       )}
     </NavigationContainer>
   );

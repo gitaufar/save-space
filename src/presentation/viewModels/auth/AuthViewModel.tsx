@@ -5,6 +5,8 @@ import { LogoutUseCase } from '../../../domain/usecases/auth/LogoutUseCase';
 import { RegisterUseCase } from '../../../domain/usecases/auth/RegisterUseCase';
 import { User } from '../../../domain/entities/User';
 import { UpdateAvatarUseCase } from '../../../domain/usecases/auth/UpdateAvatarUseCase';
+import { UpdateProfileUseCase } from '../../../domain/usecases/auth/UpdateProfileUseCase';
+import { ChangePasswordUseCase } from '../../../domain/usecases/auth/ChangePasswordUseCase';
 
 type AuthUseCases = {
   signUpUseCase: RegisterUseCase;
@@ -12,6 +14,8 @@ type AuthUseCases = {
   signOutUseCase: LogoutUseCase;
   fetchCurrentUserUseCase: FetchCurrentUserUseCase;
   updateAvatarUseCase: UpdateAvatarUseCase;
+  updateProfileUseCase: UpdateProfileUseCase;
+  changePasswordUseCase: ChangePasswordUseCase;
 };
 
 export function useAuthViewModel({
@@ -20,6 +24,8 @@ export function useAuthViewModel({
   signOutUseCase,
   fetchCurrentUserUseCase,
   updateAvatarUseCase,
+  updateProfileUseCase,
+  changePasswordUseCase,
 }: AuthUseCases) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
@@ -39,6 +45,7 @@ export function useAuthViewModel({
         await signUpUseCase.execute(email, password, name, role, space_id);
       } catch (err: any) {
         setError(err.message);
+        throw err;
       } finally {
         setLoading(false);
       }
@@ -100,5 +107,31 @@ export function useAuthViewModel({
     }
   }, [updateAvatarUseCase]);
 
-  return { user, loading, error, signUp, signIn, signOut, fetchCurrentUser, updateAvatar };
+  const updateProfile = useCallback(async (params: { name?: string; email?: string }) => {
+    setLoading(true);
+    try {
+      const updated = await updateProfileUseCase.execute(params);
+      setUser(prev => ({ ...(prev ?? {} as any), ...(updated ?? {}) } as any));
+      return updated;
+    } catch (err: any) {
+      setError(err.message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, [updateProfileUseCase]);
+
+  const changePassword = useCallback(async (newPassword: string) => {
+    setLoading(true);
+    try {
+      await changePasswordUseCase.execute(newPassword);
+    } catch (err: any) {
+      setError(err.message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, [changePasswordUseCase]);
+
+  return { user, loading, error, signUp, signIn, signOut, fetchCurrentUser, updateAvatar, updateProfile, changePassword };
 }

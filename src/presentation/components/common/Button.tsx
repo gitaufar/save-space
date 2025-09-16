@@ -9,6 +9,7 @@ type ButtonProps = {
   margin?: string;
   rounded?: string;
   loading?: boolean;
+  disabled?: boolean;
   onPress: () => void;
 };
 
@@ -20,6 +21,7 @@ export const Button= ({
   margin = 'm-6',
   rounded = 'rounded-[8px]',
   loading = false,
+  disabled = false,
   onPress,
 }: ButtonProps) => {
   if (!text) {
@@ -28,10 +30,10 @@ export const Button= ({
 
   return (
     <Pressable
-      onPress={!loading ? onPress : undefined}
-      disabled={loading}
+      onPress={!loading && !disabled ? onPress : undefined}
+      disabled={loading || disabled}
       className={`bg-[#00BFA6] ${rounded} w-full self-start ${padding} ${margin} ${
-        loading ? 'opacity-50' : 'active:opacity-70'
+        loading || disabled ? 'opacity-50' : 'active:opacity-70'
       }`}
     >
       <View className="flex-row items-center justify-center">

@@ -1,15 +1,19 @@
-import React, {useEffect, useState} from "react";
-import { ScrollView, View, Text, Image } from "react-native";
+import React, {useEffect, useState, useRef} from "react";
+import { ScrollView, View, Text, Image, Dimensions, NativeScrollEvent, NativeSyntheticEvent } from "react-native";
 // Pastikan impor MainBoxType dari file yang benar
 import { MainBox, MainBoxType } from "./MainBox";
 import WelcomeIcon from "../../../../assets/karyawan/welcome_icon.svg"; // Perhatikan path
 import MoodIcon from "../../../../assets/karyawan/mood_icon.svg"       // Perhatikan path
 import CBIIcon from "../../../../assets/karyawan/cbi_icon.svg";         // Perhatikan path
-import { useNavigation } from "@react-navigation/native";
+import AILampIcon from "../../../../assets/karyawan/ai_lamp.svg";   // Icon untuk AI Insight
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { RiwayatMood } from "./RiwayatMood";
 import { AIDailyInsight } from "./AIDailyInsight";
 import { useAuth } from "../../../contexts/AuthContext";
-import { SupabaseDataSource } from "../../../../data/datasources/SupabaseDataSource";
+import { useSpace } from "../../../contexts/SpaceContext";
+import { useCBI } from "../../../contexts/CBIContext";
+import { useAIInsight } from "../../../contexts/AIInsightContext";
+import { useMood } from "../../../contexts/MoodContext";
 
 export const mainBoxDefaultData = {
   [MainBoxType.WELCOME]: {
@@ -29,17 +33,82 @@ export const mainBoxDefaultData = {
     paragraph: "Ikuti CBI Test untuk memahami kondisi kerja Anda",
     image: <CBIIcon width={120} height={120} />,
     onPress: () => console.log("CBI test pressed")
+  },
+  [MainBoxType.AI_INSIGHT]: {
+    title: "AI Daily Insight",
+    paragraph: "Wawasan AI berdasarkan mood Anda hari ini",
+    image: <AILampIcon width={120} height={120} />,
+    onPress: () => console.log("AI insight pressed")
   }
 };
 
 export const DashboardKaryawanLayout = () => {
     const navigation = useNavigation();
     const { user } = useAuth();
+    const { currentSpace } = useSpace();
+    const { hasPendingCBI, refreshCBIStatus } = useCBI();
+    const { currentInsight: aiInsight, loading: aiLoading, refreshInsight } = useAIInsight();
+    const { hasMoodToday, refreshMoodStatus } = useMood();
     
     // State untuk data yang bisa berubah
     const [mainBoxData, setMainBoxData] = useState(mainBoxDefaultData);
-    const [aiInsight, setAiInsight] = useState<string | null>(null);
-    const [aiLoading, setAiLoading] = useState<boolean>(false);
+    const [workStartMinutes, setWorkStartMinutes] = useState<number>(9 * 60); // default 09:00
+    const [currentIndex, setCurrentIndex] = useState<number>(0);
+    const sliderRef = useRef<ScrollView | null>(null);
+    
+    // Function untuk mendapatkan MainBox type berdasarkan waktu dan kondisi user
+    const getCurrentMainBoxType = (): MainBoxType => {
+        const now = new Date();
+        const currentHour = now.getHours();
+        const currentMinutes = currentHour * 60 + now.getMinutes();
+        const workStartHour = Math.floor(workStartMinutes / 60);
+        
+        console.log('🕐 Current time:', `${currentHour}:${now.getMinutes().toString().padStart(2, '0')}`);
+        console.log('🏢 Work start time:', `${workStartHour}:${(workStartMinutes % 60).toString().padStart(2, '0')}`);
+        console.log('😊 Has mood today:', hasMoodToday);
+        
+        // Jam 6 pagi sampai jam masuk kerja = WELCOME
+        if (currentHour >= 6 && currentMinutes < workStartMinutes) {
+            console.log('📅 Showing WELCOME (before work hours)');
+            return MainBoxType.WELCOME;
+        }
+        
+        // Setelah jam masuk kerja
+        if (currentMinutes >= workStartMinutes) {
+            // Jika belum mood check hari ini = MOOD_CHECK
+            if (!hasMoodToday) {
+                console.log('😊 Showing MOOD_CHECK (work time, no mood yet)');
+                return MainBoxType.MOOD_CHECK;
+            }
+            
+            // Jika sudah mood check = AI_INSIGHT
+            console.log('🤖 Showing AI_INSIGHT (work time, mood done)');
+            return MainBoxType.AI_INSIGHT;
+        }
+        
+        // Default fallback (sebelum jam 6 pagi)
+        console.log('🌙 Showing WELCOME (early morning)');
+        return MainBoxType.WELCOME;
+    };
+    
+    // Function untuk mendapatkan data yang akan ditampilkan
+    const getDisplayData = () => {
+        const currentType = getCurrentMainBoxType();
+        // Mulai dengan 1 item utama sesuai waktu/kondisi
+        const displayItems: { type: MainBoxType }[] = [{ type: currentType }];
+        
+        // Tambahkan CBI Test jika ada pending
+        if (hasPendingCBI) {
+            displayItems.push({ type: MainBoxType.CBI_TEST });
+        }
+        
+        // Pastikan AI Insight tetap muncul (pakai teks default jika belum ada data)
+        if (!displayItems.some(i => i.type === MainBoxType.AI_INSIGHT)) {
+            displayItems.push({ type: MainBoxType.AI_INSIGHT });
+        }
+        
+        return displayItems;
+    };
     
     // Handler untuk navigasi ke halaman mood check
     const handleMoodCheck = () => {
@@ -68,29 +137,82 @@ export const DashboardKaryawanLayout = () => {
 
     // Tidak perlu fetch space lagi; ambil nama & role dari app_users via AuthContext
 
-    // Ambil AI Daily Insight terbaru hari ini untuk user (app_users.id)
+    // Refetch insight, CBI status, dan mood status ketika dashboard kembali fokus
+    useFocusEffect(
+      React.useCallback(() => {
+        refreshInsight();
+        refreshCBIStatus();
+        refreshMoodStatus();
+      }, [refreshInsight, refreshCBIStatus, refreshMoodStatus])
+    );
+
+    // Parse waktu mulai dari space work_hours
     useEffect(() => {
-      let active = true;
-      async function loadInsight() {
-        if (!user?.id) return;
-        setAiLoading(true);
-        try {
-          const ds = new SupabaseDataSource();
-          const latest = await ds.getLatestAIInsightByEmployeeToday(user.id);
-          if (active) setAiInsight(latest?.insight_text ?? null);
-        } catch (e) {
-          if (active) setAiInsight(null);
-        } finally {
-          if (active) setAiLoading(false);
+        if (currentSpace?.work_hours) {
+            const start = parseStartMinutes(currentSpace.work_hours);
+            setWorkStartMinutes(start);
         }
+    }, [currentSpace?.work_hours]);
+
+    // Override data default dengan handlers
+    useEffect(() => {
+      setMainBoxData(prev => ({
+        ...prev,
+        [MainBoxType.MOOD_CHECK]: {
+          ...prev[MainBoxType.MOOD_CHECK],
+          onPress: handleMoodCheck
+        },
+        [MainBoxType.CBI_TEST]: {
+          ...prev[MainBoxType.CBI_TEST],
+          onPress: handleCBITest
+        },
+        [MainBoxType.AI_INSIGHT]: {
+          ...prev[MainBoxType.AI_INSIGHT],
+          paragraph: aiInsight || "Wawasan AI berdasarkan mood Anda hari ini"
+        }
+      }));
+    }, [aiInsight]);
+
+    // Helper: parse start time (minutes after midnight) from work_hours string
+    function parseStartMinutes(workHours?: string): number {
+      try {
+        const text = String(workHours || '').trim();
+        const m = text.match(/(\d{1,2})(?::(\d{2}))?/);
+        if (!m) return 9 * 60;
+        const hh = Math.min(23, Math.max(0, parseInt(m[1], 10)));
+        const mm = m[2] ? Math.min(59, Math.max(0, parseInt(m[2], 10))) : 0;
+        return hh * 60 + mm;
+      } catch {
+        return 9 * 60;
       }
-      loadInsight();
-      return () => { active = false; };
-    }, [user?.id]);
+    }
+
+    // Get dynamic display data
+    const displayItems = getDisplayData();
+
+    // Auto scroll effect untuk multiple items
+    useEffect(() => {
+      if (displayItems.length <= 1) return;
+      const w = Dimensions.get('window').width;
+      const id = setInterval(() => {
+        setCurrentIndex(prev => {
+          const next = (prev + 1) % displayItems.length;
+          sliderRef.current?.scrollTo({ x: next * w, animated: true });
+          return next;
+        });
+      }, 5000);
+      return () => clearInterval(id);
+    }, [displayItems.length]);
+
+    const onMomentumEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const w = Dimensions.get('window').width;
+      const idx = Math.round((e.nativeEvent.contentOffset.x || 0) / w);
+      setCurrentIndex(Math.max(0, Math.min(idx, displayItems.length - 1)));
+    };
     
     return (
         <ScrollView className="flex-1">
-            <View className="w-full bg-primary pt-12 pb-6 px-6 flex-row items-center justify-between mb-8 rounded-b-3xl">
+            <View className="flex-row items-center justify-between w-full px-6 pt-12 pb-6 mb-8 bg-primary rounded-b-3xl">
                 <View>
                     <Text className="font-semibold text-[18px] text-[#FAFAFA]">
                         {user?.name ? `Halo ${user.name},` : 'Halo,'}
@@ -100,22 +222,53 @@ export const DashboardKaryawanLayout = () => {
                     </Text>
                 </View>
                 
-                <View className="h-20 w-20 rounded-full overflow-hidden border-8 border-white/30">
+                <View className="w-20 h-20 overflow-hidden border-8 rounded-full border-white/30">
                     <Image 
                         source={{ uri: user?.avatar_url || 'https://i.pravatar.cc/150?img=44' }}
-                        className="h-full w-full"
+                        className="w-full h-full"
                     />
                 </View>
             </View>
             
-            <View className="px-5">
-                <MainBox 
-                    title={mainBoxData[MainBoxType.WELCOME].title}
-                    paragraph={mainBoxData[MainBoxType.WELCOME].paragraph}
-                    image={mainBoxData[MainBoxType.WELCOME].image}
-                    onPress={mainBoxData[MainBoxType.WELCOME].onPress}
-                    type={MainBoxType.WELCOME}
-                />
+            <View className="px-0">
+                {displayItems.length > 0 && (
+                  <ScrollView
+                    ref={sliderRef}
+                    horizontal
+                    pagingEnabled
+                    showsHorizontalScrollIndicator={false}
+                    onMomentumScrollEnd={onMomentumEnd}
+                  >
+                    {displayItems.map((item, index) => (
+                      <View key={`${item.type}-${index}`} style={{ width: Dimensions.get('window').width }}>
+                        <View className="px-5">
+                          <MainBox
+                            title={mainBoxData[item.type].title}
+                            paragraph={mainBoxData[item.type].paragraph}
+                            image={mainBoxData[item.type].image}
+                            onPress={mainBoxData[item.type].onPress}
+                            type={item.type}
+                          />
+                        </View>
+                      </View>
+                    ))}
+                  </ScrollView>
+                )}
+
+                {/* Dots indicator */}
+                {displayItems.length > 1 && (
+                  <View className="flex-row justify-center mt-4 space-x-2">
+                    {displayItems.map((_, index) => (
+                      <View 
+                        key={index}
+                        className={`w-2 h-2 rounded-full ${
+                          index === currentIndex ? 'bg-primary' : 'bg-gray-300'
+                        }`}
+                      />
+                    ))}
+                  </View>
+                )}
+                
                 <RiwayatMood
                  />
                 <AIDailyInsight insightText={aiInsight ?? undefined} loading={aiLoading} />

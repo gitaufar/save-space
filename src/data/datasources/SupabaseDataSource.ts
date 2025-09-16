@@ -87,6 +87,70 @@ export class SupabaseDataSource {
   }
 
   // ==== USERS ====
+  // Versi app_users (profil autentikasi aplikasi)
+  async getAppUsersBySpace(spaceId: string) {
+    const { data, error } = await supabase
+      .from('app_users')
+      .select('id, name, email, avatar_url, role, space_id')
+      .eq('space_id', spaceId);
+    if (error) throw error;
+    return data;
+  }
+
+  async getKaryawansBySpace(spaceId: string) {
+    const { data, error } = await supabase
+      .from('app_users')
+      .select('id, name, email, avatar_url, role, space_id')
+      .eq('space_id', spaceId)
+      .eq('role', 'Karyawan');
+    if (error) throw error;
+    return data;
+  }
+
+  async getLatestMoodsForEmployees(employeeIds: string[]) {
+    if (!employeeIds || employeeIds.length === 0) return [] as any[];
+    const { data, error } = await supabase
+      .from('mood_responses')
+      .select('employee_id, mood, created_at')
+      .in('employee_id', employeeIds)
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    const latestByEmp: Record<string, any> = {};
+    for (const row of data || []) {
+      if (!latestByEmp[row.employee_id]) {
+        latestByEmp[row.employee_id] = row;
+      }
+    }
+    return latestByEmp;
+  }
+
+  // Only moods submitted today (local day) per employee
+  async getTodaysMoodsForEmployees(employeeIds: string[]) {
+    if (!employeeIds || employeeIds.length === 0) return {} as Record<string, any>;
+
+    const start = new Date();
+    start.setHours(0, 0, 0, 0);
+    const end = new Date();
+    end.setHours(23, 59, 59, 999);
+
+    const { data, error } = await supabase
+      .from('mood_responses')
+      .select('employee_id, mood, created_at')
+      .in('employee_id', employeeIds)
+      .gte('created_at', start.toISOString())
+      .lte('created_at', end.toISOString())
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    const latestByEmp: Record<string, any> = {};
+    for (const row of data || []) {
+      if (!latestByEmp[row.employee_id]) {
+        latestByEmp[row.employee_id] = row;
+      }
+    }
+    return latestByEmp;
+  }
   async createUser(data: {
     name: string;
     email: string;
@@ -147,7 +211,9 @@ export class SupabaseDataSource {
     if (error) throw error;
 
     // ambil public url
-    const { data } = supabase.storage.from('profile_picture').getPublicUrl(filePath);
+    const { data } = supabase.storage
+      .from('profile_picture')
+      .getPublicUrl(filePath);
 
     if (!data || !data.publicURL) {
       throw new Error('Failed to get public URL for avatar.');
@@ -171,29 +237,29 @@ export class SupabaseDataSource {
   }
 
   // ==== MOOD RESPONSES ====
-async getMoodResponsesLast7Days(userId: string) {
-  const { data, error } = await supabase
-    .from('mood_responses')
-    .select(
-      `
+  async getMoodResponsesLast7Days(userId: string) {
+    const { data, error } = await supabase
+      .from('mood_responses')
+      .select(
+        `
       id,
       employee_id,
       mood,
       response_text,
       created_at
-    `
-    )
-    .eq('employee_id', userId) // filter by user id
-    .gte(
-      'created_at',
-      new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString() // 7 hari terakhir
-    )
-    .order('created_at', { ascending: false });
+    `,
+      )
+      .eq('employee_id', userId) // filter by user id
+      .gte(
+        'created_at',
+        new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 hari terakhir
+      )
+      .order('created_at', { ascending: false });
 
-  if (error) throw error;
+    if (error) throw error;
 
-  return data;
-}
+    return data;
+  }
 
   async addMoodResponse(data: {
     employee_id: string;
@@ -242,6 +308,25 @@ async getMoodResponsesLast7Days(userId: string) {
     });
 
     return Object.values(latestByEmployee);
+  }
+
+  // Get today's mood response for a specific user
+  async getMoodResponseByUserToday(userId: string, dateString: string) {
+    const startOfDay = `${dateString}T00:00:00.000Z`;
+    const endOfDay = `${dateString}T23:59:59.999Z`;
+    
+    const { data, error } = await supabase
+      .from('mood_responses')
+      .select('*')
+      .eq('employee_id', userId)
+      .gte('created_at', startOfDay)
+      .lte('created_at', endOfDay)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (error) throw error;
+    return data;
   }
 
   // ==== AI INSIGHTS ====
@@ -303,14 +388,14 @@ async getMoodResponsesLast7Days(userId: string) {
       .gte('created_at', today.toISOString()) // hanya ambil yg created hari ini
       .order('created_at', { ascending: false })
       .limit(1)
-      .single();
+      .maybeSingle();
 
     if (error) throw error;
     return data;
   }
 
   // ==== DIVISION_EVALUATION ====
-   async getDivisionEvaluationsBySpace(spaceId: string) {
+  async getDivisionEvaluationsBySpace(spaceId: string) {
     const { data, error } = await supabase
       .from('division_evaluasion')
       .select('*')
@@ -336,28 +421,100 @@ async getMoodResponsesLast7Days(userId: string) {
   }
 
   // === CBI TEST ===
-    async getCBITestByEmployee(employeeId: string) {
+  async getCBITestByEmployee(employeeId: string) {
+    // Only fetch the most recent unfinished test for this employee
     const { data, error } = await supabase
-      .from('cbitest')
+      .from('cbi_test')
       .select('*')
       .eq('employee_id', employeeId)
+      .eq('finished', false) // Only get unfinished tests
       .order('created_at', { ascending: false }) // biar urut dari terbaru
       .limit(1)
-      .single();
+      .maybeSingle();
 
     if (error) throw error;
     return data;
   }
 
-  async markCBITestAsFinished(id: string) {
+  // Get the most recent FINISHED CBI test for an employee (for manager detail view)
+  async getLatestFinishedCBITestByEmployee(employeeId: string) {
     const { data, error } = await supabase
-      .from('cbitest')
-      .update({ finished: true })
+      .from('cbi_test')
+      .select('*')
+      .eq('employee_id', employeeId)
+      .eq('finished', true)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (error) throw error;
+    return data;
+  }
+
+  async markCBITestAsFinished(id: string, client_burnout: number, personal_burnout: number, work_burnout: number) {
+    // Ensure all scores are integers and calculate summary
+    const personalBurnoutInt = Math.round(personal_burnout);
+    const workBurnoutInt = Math.round(work_burnout);
+    const clientBurnoutInt = Math.round(client_burnout);
+    const summary = Math.round((personalBurnoutInt + workBurnoutInt + clientBurnoutInt) / 3);
+    
+    const { data, error } = await supabase
+      .from('cbi_test')
+      .update({ 
+        finished: true, 
+        client_burnout: clientBurnoutInt, 
+        personal_burnout: personalBurnoutInt, 
+        work_burnout: workBurnoutInt,
+        summary: summary
+      })
       .eq('id', id)
       .select()
       .single();
 
     if (error) throw error;
     return data;
+  }
+
+  async createCBITestForSpace(spaceId: string) {
+    // 1. Ambil semua employee di space tertentu
+    const { data: employees, error: employeesError } = await supabase
+      .from('app_users')
+      .select('id')
+      .eq('space_id', spaceId)
+      .eq('role', 'Karyawan');
+
+    if (employeesError) {
+      console.error('Error fetching employees:', employeesError.message);
+      throw employeesError;
+    }
+
+    if (!employees || employees.length === 0) {
+      console.log('Tidak ada employee di space ini');
+      return;
+    }
+
+    // 2. Buat data CBITest untuk semua employee
+    const cbiTests = employees.map(emp => ({
+      employee_id: emp.id,
+      personal_burnout: 0, // default nilai awal
+      work_burnout: 0,
+      client_burnout: 0,
+      summary: 0,
+      finished: false,
+      created_at: new Date().toISOString(),
+    }));
+
+    // 3. Insert ke tabel CBITest
+    const { data: inserted, error: insertError } = await supabase
+      .from('cbi_test')
+      .insert(cbiTests);
+
+    if (insertError) {
+      console.error('Error inserting CBITest:', insertError.message);
+      throw insertError;
+    }
+
+    console.log('CBITest created:', inserted);
+    return inserted;
   }
 }

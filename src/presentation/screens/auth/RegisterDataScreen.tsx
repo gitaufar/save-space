@@ -13,9 +13,10 @@ import Step2FotoProfil from '../../components/auth/registerData/Step2FotoProfil'
 import Step3Selesai from '../../components/auth/registerData/Step3Selesai';
 import Step1DataDiri from '../../components/auth/registerData/Step1DataDiri';
 import { useAuth } from '../../contexts/AuthContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type RegisterStepRoute = {
-  role: 'manager' | 'karyawan';
+  role: 'manager' | 'karyawan' | 'Manager' | 'Karyawan';
 };
 
 type AuthNav = NativeStackNavigationProp<AuthStackParamList, 'RegisterStep'>;
@@ -24,7 +25,7 @@ export default function RegisterDataScreen() {
   const navigation = useNavigation<AuthNav>();
   const route = useRoute();
   const { role } = route.params as RegisterStepRoute;
-  const { signUp, updateAvatar, loading, error } = useAuth();
+  const { signUp, updateAvatar, loading, error, signIn, fetchCurrentUser } = useAuth();
 
   const [step, setStep] = useState(1);
 
@@ -82,19 +83,44 @@ export default function RegisterDataScreen() {
 
       // Register user
       try {
-        const mappedRole = role === 'manager' ? 'Manager' : 'Karyawan';
+        const normalized = String(role).toLowerCase();
+        const mappedRole = normalized === 'manager' ? 'Manager' : 'Karyawan';
         await signUp(email, password, nama, mappedRole);
         // lanjut ke step 2 untuk isi profil
         setStep(step + 1);
       } catch (err: any) {
-        Alert.alert('Error', err.message || 'Gagal mendaftar');
+        // Tampilkan error di bawah field email dan tetap di Step 1
+        const msg = String(err?.message || '').toLowerCase();
+        if (msg.includes('sudah terdaftar') || msg.includes('already')) {
+          setValidationErrors({ email: 'Email sudah terdaftar' });
+        } else if (msg.includes('password')) {
+          setValidationErrors({ password: 'Password tidak valid' });
+        } else if (msg.includes('email')) {
+          setValidationErrors({ email: 'Email tidak valid' });
+        } else {
+          setValidationErrors({ email: err?.message || 'Gagal mendaftar' });
+        }
         return;
       }
       return;
     }
     
     if (step >= 3) {
-      navigation.navigate('Login');
+      // Selesai pendaftaran: auto-login lalu AppNavigator akan mengarahkan
+      // Manager tanpa space_id -> Space flow; Karyawan -> OldSpace
+      try {
+        // hint satu-kali: jika role manager, buka NewSpace dulu
+        const normalized = String(role).toLowerCase();
+        if (normalized === 'manager') {
+          await AsyncStorage.setItem('postRegisterInitialSpaceRoute', 'NewSpace');
+        }
+        await signIn(email, password);
+        await fetchCurrentUser();
+      } catch (e) {
+        // Jika auto-login gagal, fallback ke layar Login
+        navigation.navigate('Login');
+        return;
+      }
       return;
     }
     setStep(step + 1);
@@ -110,27 +136,53 @@ export default function RegisterDataScreen() {
 
   async function requestCameraPermission() {
     if (Platform.OS === 'android') {
-      const granted = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.CAMERA,
-        {
-          title: 'Izin Kamera',
-          message:
-            'Aplikasi ini membutuhkan akses kamera untuk mengambil foto.',
-          buttonNeutral: 'Tanya Nanti',
-          buttonNegative: 'Batal',
-          buttonPositive: 'OK',
-        },
-      );
-      return granted === PermissionsAndroid.RESULTS.GRANTED;
+      const perms: string[] = [PermissionsAndroid.PERMISSIONS.CAMERA];
+      // Android 13+ needs READ_MEDIA_IMAGES for gallery/camera file access
+      // Older Android may need READ_EXTERNAL_STORAGE
+      const sdk = Number(Platform.Version);
+      if (!Number.isNaN(sdk)) {
+        if (sdk >= 33 && (PermissionsAndroid as any).PERMISSIONS.READ_MEDIA_IMAGES) {
+          perms.push((PermissionsAndroid as any).PERMISSIONS.READ_MEDIA_IMAGES);
+        } else if ((PermissionsAndroid as any).PERMISSIONS.READ_EXTERNAL_STORAGE) {
+          perms.push((PermissionsAndroid as any).PERMISSIONS.READ_EXTERNAL_STORAGE);
+        }
+      }
+      const results = await PermissionsAndroid.requestMultiple(perms);
+      const cam = results[PermissionsAndroid.PERMISSIONS.CAMERA] === PermissionsAndroid.RESULTS.GRANTED;
+      const extraKey = (results as any)[(PermissionsAndroid as any).PERMISSIONS.READ_MEDIA_IMAGES] ?? (results as any)[(PermissionsAndroid as any).PERMISSIONS.READ_EXTERNAL_STORAGE];
+      const extra = extraKey ? extraKey === PermissionsAndroid.RESULTS.GRANTED : true;
+      return cam && extra;
+    }
+    return true;
+  }
+
+  async function requestGalleryPermission() {
+    if (Platform.OS === 'android') {
+      const sdk = Number(Platform.Version);
+      if (sdk >= 33 && (PermissionsAndroid as any).PERMISSIONS.READ_MEDIA_IMAGES) {
+        const granted = await PermissionsAndroid.request((PermissionsAndroid as any).PERMISSIONS.READ_MEDIA_IMAGES);
+        return granted === PermissionsAndroid.RESULTS.GRANTED;
+      } else if ((PermissionsAndroid as any).PERMISSIONS.READ_EXTERNAL_STORAGE) {
+        const granted = await PermissionsAndroid.request((PermissionsAndroid as any).PERMISSIONS.READ_EXTERNAL_STORAGE);
+        return granted === PermissionsAndroid.RESULTS.GRANTED;
+      }
     }
     return true;
   }
 
   const handleTakePhoto = async () => {
     const hasPermission = await requestCameraPermission();
-    if (!hasPermission) return;
+    if (!hasPermission) {
+      Alert.alert('Izin diperlukan', 'Aplikasi membutuhkan izin kamera & akses media.');
+      return;
+    }
 
-    launchCamera({ mediaType: 'photo', quality: 0.7, includeBase64: true }, response => {
+    launchCamera({ mediaType: 'photo', quality: 0.7 }, response => {
+      if (response.didCancel) return;
+      if (response.errorCode) {
+        Alert.alert('Error Kamera', response.errorMessage || response.errorCode);
+        return;
+      }
       if (response.assets && response.assets.length > 0) {
         const asset = response.assets[0];
         setPhoto(asset.uri || null);
@@ -140,10 +192,20 @@ export default function RegisterDataScreen() {
     });
   };
 
-  const handleChooseFromGallery = () => {
+  const handleChooseFromGallery = async () => {
+    const ok = await requestGalleryPermission();
+    if (!ok) {
+      Alert.alert('Izin diperlukan', 'Aplikasi membutuhkan akses media untuk memilih foto.');
+      return;
+    }
     launchImageLibrary(
-      { mediaType: 'photo', quality: 0.7, includeBase64: true },
+      { mediaType: 'photo', quality: 0.7 },
       (response: ImagePickerResponse) => {
+        if (response.didCancel) return;
+        if (response.errorCode) {
+          Alert.alert('Error Galeri', response.errorMessage || response.errorCode);
+          return;
+        }
         if (response.assets && response.assets.length > 0) {
           const asset = response.assets[0];
           setPhoto(asset.uri || null);

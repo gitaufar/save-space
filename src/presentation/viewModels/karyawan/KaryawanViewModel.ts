@@ -9,14 +9,18 @@ export function useMoodViewModel() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const predictMood = async () => {
+  const predictMood = async (textOverride?: string): Promise<Mood> => {
     setLoading(true);
     setError('');
     try {
-      const result = await getMood(inputText);
+      const input = typeof textOverride === 'string' && textOverride.length > 0 ? textOverride : inputText;
+      const result = await getMood(input);
       setMood(result);
-    } catch {
-      setError('Gagal memprediksi mood');
+      return result;
+    } catch (err: any) {
+      const msg = err?.message || 'Gagal memprediksi mood';
+      setError(msg);
+      throw err;
     } finally {
       setLoading(false);
     }

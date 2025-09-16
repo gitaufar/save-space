@@ -5,6 +5,9 @@ import PengaturanKaryawanScreen from '../screens/karyawan/PengaturanKaryawanScre
 import { NavbarKaryawan } from '../components/karyawan/Beranda/NavbarKaryawan';
 import DashboardKaryawanScreen from '../screens/karyawan/DashboardKaryawanScreen';
 import DetailRiwayatMoodScreen from '../screens/karyawan/DetailRiwayatMoodScreen';
+import CBITestScreen from "../screens/cbiTest/CBITestScreen";
+import MoodCheckScreen from "../screens/moodCheck/MoodCheckScreen";
+import ProfileKaryawan from "../screens/profile/ProfileScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -31,6 +34,9 @@ export default function KaryawanNavigator() {
       
       {/* Screen lain yang tidak menampilkan tab bar */}
       <Stack.Screen name="DetailRiwayatMoodScreen" component={DetailRiwayatMoodScreen} />
+      <Stack.Screen name="CBITestScreen" component={CBITestScreen} />
+      <Stack.Screen name="MoodCheckScreen" component={MoodCheckScreen} />
+      <Stack.Screen name="ProfileScreen" component={ProfileKaryawan} />
     </Stack.Navigator>
   );
 }

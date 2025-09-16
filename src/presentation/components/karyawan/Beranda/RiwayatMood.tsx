@@ -1,89 +1,114 @@
-import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, TouchableOpacity, Dimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import Logo from '../../../../assets/karyawan/query_stats.svg'; // Perhatikan path
+import Svg, { Polyline, Circle } from 'react-native-svg';
+import Logo from '../../../../assets/karyawan/query_stats.svg';
 import { Button } from '../../common/Button';
-import DetailRiwayatMoodScreen from '../../../screens/karyawan/DetailRiwayatMoodScreen';
+import { useMoodHistory, MoodChartData } from '../../../contexts/MoodHistoryContext';
+import { useAuth } from '../../../contexts/AuthContext';
 
-// Interface untuk data mood
-export interface MoodData {
-  value: number; // Nilai mood (1-5)
-  date: string; // Tanggal mood (format bebas, untuk display bisa dikustomisasi)
-}
-
-// Interface untuk props komponen
 interface RiwayatMoodProps {
-  data?: MoodData[]; // Data mood dari backend
-  onViewDetail?: () => void; // Handler untuk tombol lihat detail
-  title?: string; // Judul komponen (opsional)
-  loading?: boolean; // State loading (opsional)
-  error?: string; // Pesan error jika ada (opsional)
+  userId?: string;
+  onViewDetail?: () => void;
+  title?: string;
 }
 
 export const RiwayatMood: React.FC<RiwayatMoodProps> = ({
-  data,
+  userId,
   onViewDetail,
   title = 'Riwayat Mood',
-  loading = false,
-  error,
 }) => {
   const navigation = useNavigation();
+  const { user } = useAuth();
+  const { moodHistory, loading, error, getMoodHistoryForUser } = useMoodHistory();
+  const [displayData, setDisplayData] = useState<MoodChartData[]>([]);
 
-  // Default data jika tidak ada data dari props
-  const defaultMoodData: MoodData[] = [
-    { value: 1, date: '2023-09-01' },
-    { value: 1, date: '2023-09-02' },
-    { value: 1, date: '2023-09-03' },
-    { value: 1, date: '2023-09-04' },
-    { value: 1, date: '2023-09-05' },
-    { value: 1, date: '2023-09-06' },
-    { value: 1, date: '2023-09-07' },
-  ];
+  // Fetch data berdasarkan userId atau current user
+  useEffect(() => {
+    if (userId && userId !== user?.id) {
+      // Untuk manager screen - fetch data karyawan tertentu
+      getMoodHistoryForUser(userId).then(setDisplayData);
+    } else {
+      // Untuk employee dashboard - gunakan data dari context
+      setDisplayData(moodHistory);
+    }
+  }, [userId, user?.id, moodHistory, getMoodHistoryForUser]);
 
-  // Gunakan data dari props jika ada, jika tidak gunakan default
-  const moodData = data || defaultMoodData;
+  // Buat data 7 hari dengan padding jika tidak ada data
+  const getLast7DaysData = (): MoodChartData[] => {
+    const result: MoodChartData[] = [];
+    const today = new Date();
+    
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(date.getDate() - i);
+      const dateStr = date.toISOString().split('T')[0];
+      
+      // Cari data untuk tanggal ini
+      const existingData = displayData.find(item => item.date === dateStr);
+      
+      if (existingData) {
+        result.push(existingData);
+      } else {
+        // Tambahkan data kosong dengan nilai netral (4)
+        result.push({
+          value: 4,
+          date: dateStr,
+          moodName: 'netral'
+        });
+      }
+    }
+    
+    return result;
+  };
 
-  // Transformasi data untuk chart
-  const chartValues = moodData.map(item => item.value);
+  const chartData = getLast7DaysData();
+  const chartValues = chartData.map(item => item.value);
 
-  // Hitung nama hari dari tanggal
   // Hitung nama hari dari tanggal
   const getDayName = (dateStr: string) => {
-    const date = new Date(dateStr);
+    const date = new Date(dateStr + 'T00:00:00');
     const days = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
     return days[date.getDay()];
   };
 
-  // Buat array 7 hari terakhir (rolling sampai hari ini)
-  const getLast7Days = () => {
-    const days = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
-    const today = new Date().getDay(); // 0 = Min, 1 = Sen, dst
-    const rotated = [];
-
-    for (let i = 1; i <= 7; i++) {
-      rotated.push(days[(today + i) % 7]);
-    }
-    return rotated;
-  };
-
-  const dayLabels = getLast7Days();
+  const dayLabels = chartData.map(item => getDayName(item.date));
   
-  // Buat garis horizontal (axis)
-  const yAxis = [5, 4, 3, 2, 1];
+  // Buat garis horizontal (axis) - mood scale 1-7
+  const yAxis = [7, 6, 5, 4, 3, 2, 1];
 
   // Handle view detail
   const handleViewDetail = () => {
     if (onViewDetail) {
       onViewDetail();
     } else {
-      // Default behavior jika tidak ada handler
       navigation.navigate('DetailRiwayatMoodScreen' as never);
-      // Pastikan nama screen sesuai dengan yang didaftarkan di KaryawanNavigator.tsx
     }
   };
 
-  // Tinggi setiap unit grid
-  const gridUnitHeight = 24;
+  // Tinggi setiap unit grid (untuk 7 level mood)
+  const gridUnitHeight = 20;
+  const chartWidth = 280; // Fixed width untuk konsistensi
+  const chartHeight = gridUnitHeight * 7;
+
+  // Hitung posisi X dan Y untuk setiap titik
+  const getChartPoints = () => {
+    const points: { x: number; y: number; value: number }[] = [];
+    const stepX = chartWidth / (chartValues.length - 1);
+    
+    chartValues.forEach((value, index) => {
+      const x = index * stepX;
+      const y = chartHeight - ((value - 1) * gridUnitHeight);
+      points.push({ x, y, value });
+    });
+    
+    return points;
+  };
+
+  const chartPoints = getChartPoints();
+
+  // Buat string untuk polyline SVG
+  const polylinePoints = chartPoints.map(point => `${point.x},${point.y}`).join(' ');
 
   return (
     <View className="w-full bg-white rounded-3xl shadow-md p-6 mb-4 border border-[#E5E7EB]">
@@ -110,71 +135,66 @@ export const RiwayatMood: React.FC<RiwayatMoodProps> = ({
 
       {/* Chart container dengan grid */}
       {!loading && !error && (
-        <View className="mb-4" style={{ height: gridUnitHeight * 5 }}>
-          {/* Y-axis labels (kiri) */}
-          <View className="absolute left-0 h-full justify-between">
-            {yAxis.map(value => (
-              <Text key={value} className="text-xs text-gray-500">
-                {value}
-              </Text>
-            ))}
-          </View>
-
-          {/* Chart area */}
-          <View className="ml-7 mr-2 h-full">
-            {/* Grid lines */}
-            {yAxis.map(value => (
-              <View
-                key={value}
-                className="w-full border-b border-gray-100"
-                style={{ height: gridUnitHeight }}
-              />
-            ))}
-
-            {/* Data points and lines */}
-            <View className="absolute flex-row justify-between w-full bottom-0 top-0">
-              {chartValues.map((value, index) => {
-                const nextValue = chartValues[index + 1];
-
-                return (
-                  <View key={index} className="items-center justify-end">
-                    {/* Point */}
-                    <View
-                      className="h-3 w-3 rounded-full bg-primary absolute"
-                      style={{ bottom: (value - 1) * gridUnitHeight }}
-                    />
-
-                    {/* Line to next point (if not last) */}
-                    {nextValue && index < chartValues.length - 1 && (
-                      <View
-                        className="bg-primary absolute h-0.5"
-                        style={{
-                          width: `${100 / chartValues.length}%`,
-                          bottom: (value - 1) * gridUnitHeight + 1.5,
-                          transform: [
-                            {
-                              rotate: `${Math.atan2(
-                                (nextValue - value) * gridUnitHeight,
-                                100 / chartValues.length,
-                              )}rad`,
-                            },
-                          ],
-                        }}
-                      />
-                    )}
-                  </View>
-                );
-              })}
+        <View className="mb-4">
+          {/* Chart dengan SVG */}
+          <View className="relative" style={{ height: chartHeight }}>
+            {/* Y-axis labels (kiri) */}
+            <View className="absolute left-0 h-full justify-between z-10">
+              {yAxis.map(value => (
+                <Text key={value} className="text-xs text-gray-500">
+                  {value}
+                </Text>
+              ))}
             </View>
-          </View>
 
-          {/* X-axis labels (days) */}
-          <View className="flex-row justify-between mt-2 ml-7 mr-2">
-            {dayLabels.map((day, i) => (
-              <Text key={i} className="text-xs text-gray-500">
-                {day}
-              </Text>
-            ))}
+            {/* Chart area */}
+            <View className="ml-7 mr-2 h-full">
+              {/* Grid lines */}
+              {yAxis.map(value => (
+                <View
+                  key={value}
+                  className="w-full border-b border-gray-100"
+                  style={{ height: gridUnitHeight }}
+                />
+              ))}
+
+              {/* SVG Chart */}
+              <View className="absolute inset-0">
+                <Svg height={chartHeight} width={chartWidth}>
+                  {/* Garis yang menghubungkan titik-titik */}
+                  <Polyline
+                    points={polylinePoints}
+                    fill="none"
+                    stroke="#10B981"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  
+                  {/* Titik-titik data */}
+                  {chartPoints.map((point, index) => (
+                    <Circle
+                      key={index}
+                      cx={point.x}
+                      cy={point.y}
+                      r="6"
+                      fill="#10B981"
+                      stroke="#ffffff"
+                      strokeWidth="2"
+                    />
+                  ))}
+                </Svg>
+              </View>
+            </View>
+
+            {/* X-axis labels (bawah) */}
+            <View className="flex-row justify-between mt-2 ml-7 mr-2">
+              {dayLabels.map((day, index) => (
+                <Text key={index} className="text-xs text-gray-500">
+                  {day}
+                </Text>
+              ))}
+            </View>
           </View>
         </View>
       )}

@@ -55,7 +55,8 @@ export default function EmployeeMoodCard({
   return (
     <TouchableOpacity
       onPress={onPress}
-      className="bg-white rounded-2xl p-3 flex-row items-center mb-3 shadow-sm"
+      className="flex-row items-center p-3 mb-3 bg-white shadow-sm rounded-2xl"
+      // eslint-disable-next-line react-native/no-inline-styles
       style={{
         shadowColor: '#000',
         shadowOpacity: 0.05,
@@ -67,13 +68,15 @@ export default function EmployeeMoodCard({
       {/* Avatar */}
       <Image
         source={{ uri: avatar }}
-        className="w-12 h-12 rounded-full mr-3"
+        className="w-12 h-12 mr-3 rounded-full"
       />
 
       {/* Info */}
       <View className="flex-1">
-        <Text className="text-base font-semibold text-gray-900">{name}</Text>
-        <Text className="text-sm text-gray-500">{department}</Text>
+        <Text className="text-base font-semibold text-gray-900" numberOfLines={1} ellipsizeMode="tail">{name}</Text>
+        {!!department && (
+          <Text className="text-sm text-gray-500" numberOfLines={1} ellipsizeMode="tail">{department}</Text>
+        )}
       </View>
 
       {/* Mood */}

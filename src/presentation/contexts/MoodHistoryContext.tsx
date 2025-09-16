@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useDataSource } from './DataSourceContext';
 import { useAuth } from './AuthContext';
+import { supabase } from '../../core/utils/SupabaseClient';
 
 // Type untuk mood data dari database
 export interface MoodResponseData {
@@ -103,6 +104,22 @@ export const MoodHistoryProvider: React.FC<{ children: React.ReactNode }> = ({ c
     if (user?.id) {
       refreshMoodHistory();
     }
+  }, [user?.id, refreshMoodHistory]);
+
+  // Realtime (Supabase v1): subscribe to mood changes for current user to keep history fresh
+  useEffect(() => {
+    if (!user?.id) return;
+    const handler = () => refreshMoodHistory();
+    const subscription: any = supabase
+      .from(`mood_responses:employee_id=eq.${user.id}`)
+      .on('INSERT', handler)
+      .on('UPDATE', handler)
+      .on('DELETE', handler)
+      .subscribe();
+
+    return () => {
+      try { supabase.removeSubscription(subscription); } catch {}
+    };
   }, [user?.id, refreshMoodHistory]);
 
   return (

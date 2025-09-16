@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useDataSource } from './DataSourceContext';
 import { useAuth } from './AuthContext';
+import { supabase } from '../../core/utils/SupabaseClient';
 
 // Type untuk employee dengan mood data
 export interface EmployeeWithMood {
@@ -87,6 +88,22 @@ export const EmployeeProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   useEffect(() => {
     refreshEmployees();
   }, [refreshEmployees]);
+
+  // Realtime (Supabase v1): subscribe to mood_responses changes to refresh employee moods
+  useEffect(() => {
+    if (!user?.space_id) return;
+    const handler = () => refreshEmployees();
+    const subscription: any = supabase
+      .from('mood_responses')
+      .on('INSERT', handler)
+      .on('UPDATE', handler)
+      .on('DELETE', handler)
+      .subscribe();
+
+    return () => {
+      try { supabase.removeSubscription(subscription); } catch {}
+    };
+  }, [user?.space_id, refreshEmployees]);
 
   return (
     <EmployeeContext.Provider

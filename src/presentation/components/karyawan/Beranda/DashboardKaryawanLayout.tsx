@@ -48,11 +48,12 @@ export const DashboardKaryawanLayout = () => {
     const { currentSpace } = useSpace();
     const { hasPendingCBI, refreshCBIStatus } = useCBI();
     const { currentInsight: aiInsight, loading: aiLoading, refreshInsight } = useAIInsight();
-    const { hasMoodToday, refreshMoodStatus } = useMood();
+    const { hasMoodToday, hasMorningMood, hasEveningMood, refreshMoodStatus } = useMood();
     
     // State untuk data yang bisa berubah
     const [mainBoxData, setMainBoxData] = useState(mainBoxDefaultData);
     const [workStartMinutes, setWorkStartMinutes] = useState<number>(9 * 60); // default 09:00
+    const [workEndMinutes, setWorkEndMinutes] = useState<number>(17 * 60); // default 17:00
     const [currentIndex, setCurrentIndex] = useState<number>(0);
     const sliderRef = useRef<ScrollView | null>(null);
     
@@ -73,6 +74,22 @@ export const DashboardKaryawanLayout = () => {
             return MainBoxType.WELCOME;
         }
         
+        // Selama jam kerja: mood pagi -> insight
+        if (currentMinutes >= workStartMinutes && currentMinutes < workEndMinutes) {
+            if (!hasMorningMood) {
+                return MainBoxType.MOOD_CHECK;
+            }
+            return MainBoxType.AI_INSIGHT;
+        }
+
+        // Setelah jam kerja: mood sore -> insight
+        if (currentMinutes >= workEndMinutes) {
+            if (!hasEveningMood) {
+                return MainBoxType.MOOD_CHECK;
+            }
+            return MainBoxType.AI_INSIGHT;
+        }
+
         // Setelah jam masuk kerja
         if (currentMinutes >= workStartMinutes) {
             // Jika belum mood check hari ini = MOOD_CHECK
@@ -146,11 +163,12 @@ export const DashboardKaryawanLayout = () => {
       }, [refreshInsight, refreshCBIStatus, refreshMoodStatus])
     );
 
-    // Parse waktu mulai dari space work_hours
+    // Parse waktu mulai & selesai dari space work_hours (format: "HH:mm - HH:mm")
     useEffect(() => {
         if (currentSpace?.work_hours) {
-            const start = parseStartMinutes(currentSpace.work_hours);
+            const { start, end } = parseStartEndMinutes(currentSpace.work_hours);
             setWorkStartMinutes(start);
+            setWorkEndMinutes(end);
         }
     }, [currentSpace?.work_hours]);
 
@@ -173,17 +191,28 @@ export const DashboardKaryawanLayout = () => {
       }));
     }, [aiInsight]);
 
-    // Helper: parse start time (minutes after midnight) from work_hours string
-    function parseStartMinutes(workHours?: string): number {
+    // Helper: parse start & end minutes from work_hours string
+    function parseStartEndMinutes(workHours?: string): { start: number; end: number } {
       try {
         const text = String(workHours || '').trim();
-        const m = text.match(/(\d{1,2})(?::(\d{2}))?/);
-        if (!m) return 9 * 60;
-        const hh = Math.min(23, Math.max(0, parseInt(m[1], 10)));
-        const mm = m[2] ? Math.min(59, Math.max(0, parseInt(m[2], 10))) : 0;
-        return hh * 60 + mm;
+        // Support "HH:mm-HH:mm", "HH.mm-HH.mm", with or without spaces around '-'
+        const m = text.match(/(\d{1,2})(?:(?::|\.)\s*(\d{2}))?\s*-\s*(\d{1,2})(?:(?::|\.)\s*(\d{2}))?/);
+        if (!m) {
+          // fallback if only start provided (also support dot)
+          const startOnly = text.match(/(\d{1,2})(?:(?::|\.)\s*(\d{2}))?/);
+          const sh = startOnly ? Math.min(23, Math.max(0, parseInt(startOnly[1], 10))) : 9;
+          const sm = startOnly && startOnly[2] ? Math.min(59, Math.max(0, parseInt(startOnly[2], 10))) : 0;
+          const start = sh * 60 + sm;
+          const end = Math.min(23 * 60 + 59, start + 8 * 60);
+          return { start, end };
+        }
+        const sh = Math.min(23, Math.max(0, parseInt(m[1], 10)));
+        const sm = m[2] ? Math.min(59, Math.max(0, parseInt(m[2], 10))) : 0;
+        const eh = Math.min(23, Math.max(0, parseInt(m[3], 10)));
+        const em = m[4] ? Math.min(59, Math.max(0, parseInt(m[4], 10))) : 0;
+        return { start: sh * 60 + sm, end: eh * 60 + em };
       } catch {
-        return 9 * 60;
+        return { start: 9 * 60, end: 17 * 60 };
       }
     }
 
@@ -214,10 +243,10 @@ export const DashboardKaryawanLayout = () => {
         <ScrollView className="flex-1">
             <View className="flex-row items-center justify-between w-full px-6 pt-12 pb-6 mb-8 bg-primary rounded-b-3xl">
                 <View>
-                    <Text className="font-semibold text-[18px] text-[#FAFAFA]">
+                    <Text className="font-semibold text-[18px] text-[#FAFAFA] max-w-[260px]" numberOfLines={1} ellipsizeMode="tail">
                         {user?.name ? `Halo ${user.name},` : 'Halo,'}
                     </Text>
-                    <Text className="text-[14px] text-[#FAFAFA]">
+                    <Text className="text-[14px] text-[#FAFAFA] max-w-[260px]" numberOfLines={1} ellipsizeMode="tail">
                         {user?.role || ''}
                     </Text>
                 </View>

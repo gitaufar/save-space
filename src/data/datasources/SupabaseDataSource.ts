@@ -375,11 +375,13 @@ export class SupabaseDataSource {
 
   // === CBI TEST ===
   async getCBITestByEmployee(employeeId: string) {
+    // Only fetch the most recent unfinished test for this employee
     const { data, error } = await supabase
       .from('cbi_test')
       .select('*')
       .eq('employee_id', employeeId)
-      .order('created_at', { ascending: false }) // biar urut dari terbaru
+      .eq('finished', false)
+      .order('created_at', { ascending: false })
       .limit(1)
       .single();
 

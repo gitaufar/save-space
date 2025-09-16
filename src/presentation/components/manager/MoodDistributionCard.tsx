@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text } from 'react-native';
-import { PolarChart, Pie } from 'victory-native';
+import Svg, { Path } from 'react-native-svg';
 import PieChartNull from '../../../assets/hrd/pie_chart_mood_karyawan_null.svg'; // svg file
 
 type MoodDistributionCardProps = {
@@ -40,11 +40,7 @@ export default function MoodDistributionCard({
     );
   }
 
-  const chartData = data.map(item => ({
-    label: item.mood,
-    value: item.value,
-    color: item.color,
-  }));
+  const chartData = data.map(item => ({ label: item.mood, value: item.value, color: item.color }));
 
   return (
     <View
@@ -59,15 +55,8 @@ export default function MoodDistributionCard({
         Distribusi Mood Karyawan
       </Text>
 
-      <View style={{ height: 200 }}>
-        <PolarChart
-          data={chartData}
-          labelKey="label"
-          valueKey="value"
-          colorKey="color"
-        >
-          <Pie.Chart />
-        </PolarChart>
+      <View style={{ height: 200, alignItems: 'center', justifyContent: 'center' }}>
+        <DonutPie data={chartData} />
       </View>
 
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginTop: 12 }}>
@@ -95,5 +84,68 @@ export default function MoodDistributionCard({
         ))}
       </View>
     </View>
+  );
+}
+
+type DonutDatum = { label: string; value: number; color: string };
+
+function DonutPie({ data }: { data: DonutDatum[] }) {
+  const size = 200; // square
+  const cx = size / 2;
+  const cy = size / 2;
+  const outerR = 90;
+  const innerR = 50;
+
+  const total = data.reduce((acc, d) => acc + (d.value || 0), 0) || 1;
+
+  let startAngle = -90; // start at 12 o'clock
+
+  const segments = data.map((d) => {
+    const sweep = (d.value / total) * 360;
+    const seg = { start: startAngle, end: startAngle + sweep, color: d.color };
+    startAngle += sweep;
+    return seg;
+  });
+
+  const pathForSegment = (startDeg: number, endDeg: number, outerRadius: number, innerRadius: number) => {
+    const rad = (deg: number) => (Math.PI * deg) / 180;
+
+    const outerStart = {
+      x: cx + outerRadius * Math.cos(rad(startDeg)),
+      y: cy + outerRadius * Math.sin(rad(startDeg)),
+    };
+    const outerEnd = {
+      x: cx + outerRadius * Math.cos(rad(endDeg)),
+      y: cy + outerRadius * Math.sin(rad(endDeg)),
+    };
+
+    const innerStart = {
+      x: cx + innerRadius * Math.cos(rad(endDeg)),
+      y: cy + innerRadius * Math.sin(rad(endDeg)),
+    };
+    const innerEnd = {
+      x: cx + innerRadius * Math.cos(rad(startDeg)),
+      y: cy + innerRadius * Math.sin(rad(startDeg)),
+    };
+
+    const largeArc = endDeg - startDeg > 180 ? 1 : 0;
+
+    const d = [
+      `M ${outerStart.x} ${outerStart.y}`,
+      `A ${outerRadius} ${outerRadius} 0 ${largeArc} 1 ${outerEnd.x} ${outerEnd.y}`,
+      `L ${innerStart.x} ${innerStart.y}`,
+      `A ${innerRadius} ${innerRadius} 0 ${largeArc} 0 ${innerEnd.x} ${innerEnd.y}`,
+      'Z',
+    ].join(' ');
+
+    return d;
+  };
+
+  return (
+    <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+      {segments.map((s, i) => (
+        <Path key={i} d={pathForSegment(s.start, s.end, outerR, innerR)} fill={s.color} />
+      ))}
+    </Svg>
   );
 }

@@ -138,7 +138,7 @@ export const DashboardKaryawanLayout = () => {
         try {
           const ds = new SupabaseDataSource();
           const test = await ds.getCBITestByEmployee(user.id);
-          if (active) setHasPendingCBI(Boolean(test && test.finished === false));
+          if (active) setHasPendingCBI(Boolean(test));
         } catch {
           if (active) setHasPendingCBI(false);
         }

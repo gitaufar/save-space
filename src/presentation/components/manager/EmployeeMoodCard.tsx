@@ -49,7 +49,8 @@ export default function EmployeeMoodCard({
   mood,
   onPress,
 }: EmployeeMoodCardProps) {
-  const { bg, color, icon: MoodIcon } = moodConfig[mood];
+  const safeMood = (mood as any) in moodConfig ? (mood as MoodType) : 'Netral';
+  const { bg, color, icon: MoodIcon } = moodConfig[safeMood];
 
   return (
     <TouchableOpacity
@@ -77,7 +78,7 @@ export default function EmployeeMoodCard({
 
       {/* Mood */}
       <View
-        className={`w-12 h-12 rounded-full items-center justify-center mr-2`}
+        className={`w-12 h-12 rounded-full items-center justify-center mr-2 ${bg}`}
       >
         <MoodIcon width={32} height={32} />
       </View>

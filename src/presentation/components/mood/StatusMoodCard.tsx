@@ -28,7 +28,8 @@ export const StatusMoodCard = ({ moodType }: StatusMoodCardProps) => {
     Senang: { border: 'border-green-300', bg: 'bg-green-100', text: 'Senang', textColor: 'text-green-600', icon: SenangSvg }
   };
 
-  const { border, bg, text, textColor, icon: MoodIcon } = moodConfig[moodType];
+  const safeMood = (moodType as any) in moodConfig ? moodType : 'Netral';
+  const { border, bg, text, textColor, icon: MoodIcon } = moodConfig[safeMood as keyof typeof moodConfig];
 
   return (
     <View className={`rounded-xl ${bg} p-3 flex-row items-center mb-4 border ${border}`}>

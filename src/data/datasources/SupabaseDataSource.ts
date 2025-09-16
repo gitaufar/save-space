@@ -123,6 +123,34 @@ export class SupabaseDataSource {
     }
     return latestByEmp;
   }
+
+  // Only moods submitted today (local day) per employee
+  async getTodaysMoodsForEmployees(employeeIds: string[]) {
+    if (!employeeIds || employeeIds.length === 0) return {} as Record<string, any>;
+
+    const start = new Date();
+    start.setHours(0, 0, 0, 0);
+    const end = new Date();
+    end.setHours(23, 59, 59, 999);
+
+    const { data, error } = await supabase
+      .from('mood_responses')
+      .select('employee_id, mood, created_at')
+      .in('employee_id', employeeIds)
+      .gte('created_at', start.toISOString())
+      .lte('created_at', end.toISOString())
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    const latestByEmp: Record<string, any> = {};
+    for (const row of data || []) {
+      if (!latestByEmp[row.employee_id]) {
+        latestByEmp[row.employee_id] = row;
+      }
+    }
+    return latestByEmp;
+  }
   async createUser(data: {
     name: string;
     email: string;
@@ -360,7 +388,7 @@ export class SupabaseDataSource {
       .gte('created_at', today.toISOString()) // hanya ambil yg created hari ini
       .order('created_at', { ascending: false })
       .limit(1)
-      .single();
+      .maybeSingle();
 
     if (error) throw error;
     return data;
@@ -402,7 +430,22 @@ export class SupabaseDataSource {
       .eq('finished', false) // Only get unfinished tests
       .order('created_at', { ascending: false }) // biar urut dari terbaru
       .limit(1)
-      .single();
+      .maybeSingle();
+
+    if (error) throw error;
+    return data;
+  }
+
+  // Get the most recent FINISHED CBI test for an employee (for manager detail view)
+  async getLatestFinishedCBITestByEmployee(employeeId: string) {
+    const { data, error } = await supabase
+      .from('cbi_test')
+      .select('*')
+      .eq('employee_id', employeeId)
+      .eq('finished', true)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
 
     if (error) throw error;
     return data;

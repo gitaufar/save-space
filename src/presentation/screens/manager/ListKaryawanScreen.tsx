@@ -6,16 +6,17 @@ import { ArrowLeft } from 'lucide-react-native'; // kalau pakai lucide-react-nat
 import { useEmployees } from '../../contexts/EmployeeContext';
 
 type Employee = {
+  id: string;
   name: string;
   department: string;
   avatar: string;
-  mood: number;
+  mood: any;
 };
 
 export default function ListKaryawanScreen() {
   const navigation = useNavigation();
   const route = useRoute();
-  const { employees: contextEmployees } = useEmployees();
+  const { employees: contextEmployees, getEmployeesWithMoods } = useEmployees();
   
   // Ambil employees dari route params atau dari context
   const employees = useMemo(() => {
@@ -24,8 +25,10 @@ export default function ListKaryawanScreen() {
       return routeEmployees;
     }
     
-    // Convert dari context employees ke format yang dibutuhkan screen ini
-    return contextEmployees.map(emp => ({
+    // Convert dari context employees ke format yang dibutuhkan screen ini, hanya yang punya mood hari ini
+    const filtered = getEmployeesWithMoods();
+    return filtered.map(emp => ({
+      id: emp.id,
       name: emp.name,
       department: emp.department,
       avatar: emp.avatar,

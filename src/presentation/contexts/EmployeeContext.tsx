@@ -49,8 +49,8 @@ export const EmployeeProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       const karys = await dataSource.getKaryawansBySpace(user.space_id);
       const ids = (karys || []).map((k: any) => k.id);
       
-      // Ambil mood terbaru untuk setiap karyawan
-      const latestMap = await dataSource.getLatestMoodsForEmployees(ids);
+      // Ambil mood terbaru HARI INI untuk setiap karyawan
+      const latestMap = await dataSource.getTodaysMoodsForEmployees(ids);
       
       // Mapping data dengan mood
       const mapped: EmployeeWithMood[] = (karys || []).map((k: any) => ({

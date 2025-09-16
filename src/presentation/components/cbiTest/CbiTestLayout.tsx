@@ -18,7 +18,7 @@ import { useAuth } from "../../contexts/AuthContext";
 
 export const CBITestLayout = () => {
     const navigation = useNavigation();
-    const { markCBITestAsFinished, loading, cbiRepository } = useCBI();
+    const { markCBITestAsFinished, loading, cbiRepository, refreshCBIStatus } = useCBI();
     const { user } = useAuth();
     
     // Gabungkan semua pertanyaan menjadi satu array
@@ -87,6 +87,9 @@ export const CBITestLayout = () => {
               scores.workBurnout,
               scores.clientBurnout
             );
+
+            // Refresh CBI status immediately so dashboard hides the CBI box
+            try { await refreshCBIStatus(); } catch {}
 
             Alert.alert(
               "CBI Test Selesai", 

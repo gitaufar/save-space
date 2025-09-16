@@ -14,16 +14,17 @@ export default function DashboardHRD() {
   const navigation = useNavigation();
   const { user } = useAuth();
   const { currentSpace } = useSpace();
-  const { employees, loading } = useEmployees();
+  const { employees, loading, getEmployeesWithMoods } = useEmployees();
+  const employeesWithMood = useMemo(() => getEmployeesWithMoods(), [getEmployeesWithMoods]);
 
   const spaceLabel = currentSpace?.name || 'Ruang Kerja';
 
-  const noMoodData = employees.length === 0 || employees.every(emp => !emp.mood);
+  const noMoodData = employeesWithMood.length === 0;
 
   const moodData = useMemo(() => {
     if (noMoodData) return null;
     const counts: Record<string, number> = {};
-    for (const e of employees) {
+    for (const e of employeesWithMood) {
       const m = e.mood;
       if (!m) continue;
       counts[m] = (counts[m] ?? 0) + 1;
@@ -38,7 +39,7 @@ export default function DashboardHRD() {
       Senang: '#16A34A',
     };
     return Object.keys(counts).map(k => ({ mood: k, value: counts[k], color: colorMap[k] || '#9CA3AF' }));
-  }, [employees, noMoodData]);
+  }, [employeesWithMood, noMoodData]);
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: '#f3f4f6' }}>
@@ -64,7 +65,7 @@ export default function DashboardHRD() {
         >
           <Text style={{ fontWeight: '600', fontSize: 16 }}>Mood Karyawan</Text>
           {!noMoodData && (
-            <TouchableOpacity onPress={() => (navigation as any).navigate('ListKaryawanScreen', { employees })}>
+            <TouchableOpacity onPress={() => (navigation as any).navigate('ListKaryawanScreen', { employees: employeesWithMood })}>
               <Text style={{ color: '#00BFA6', fontSize: 14 }}>
                 Lihat Semua
               </Text>
@@ -95,7 +96,7 @@ export default function DashboardHRD() {
             </View>
           ) : (
             // === Tampilan daftar karyawan kalau ada data mood ===
-            employees.map((emp, idx) => (
+            employeesWithMood.map((emp, idx) => (
               <EmployeeMoodCard
                 key={idx}
                 name={emp.name}

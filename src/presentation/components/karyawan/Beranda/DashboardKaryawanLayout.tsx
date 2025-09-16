@@ -94,13 +94,17 @@ export const DashboardKaryawanLayout = () => {
     // Function untuk mendapatkan data yang akan ditampilkan
     const getDisplayData = () => {
         const currentType = getCurrentMainBoxType();
-        
-        // Buat array berdasarkan kondisi
-        const displayItems = [{ type: currentType }];
+        // Mulai dengan 1 item utama sesuai waktu/kondisi
+        const displayItems: { type: MainBoxType }[] = [{ type: currentType }];
         
         // Tambahkan CBI Test jika ada pending
         if (hasPendingCBI) {
             displayItems.push({ type: MainBoxType.CBI_TEST });
+        }
+        
+        // Pastikan AI Insight tetap muncul (pakai teks default jika belum ada data)
+        if (!displayItems.some(i => i.type === MainBoxType.AI_INSIGHT)) {
+            displayItems.push({ type: MainBoxType.AI_INSIGHT });
         }
         
         return displayItems;

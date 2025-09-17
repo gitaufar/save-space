@@ -14,7 +14,7 @@ export interface MoodResponseData {
 
 // Type untuk mood data yang sudah diformat untuk chart
 export interface MoodChartData {
-  value: number; // 1-7 (stress, sedih, marah, netral, tenang, lelah, senang)
+  value: number; // 1-7 (stress, sedih, marah, netral, tenang, lelah, bahagia)
   date: string;
   moodName: string;
   response_text?: string;
@@ -50,7 +50,7 @@ export const MoodHistoryProvider: React.FC<{ children: React.ReactNode }> = ({ c
       'netral': 4,
       'tenang': 5,
       'lelah': 6,
-      'senang': 7
+      'bahagia': 7
     };
     return moodMap[mood.toLowerCase()] || 4; // default netral
   };

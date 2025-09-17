@@ -18,7 +18,7 @@ type Employee = {
   mood?: string | null;
 };
 
-const moodLabels = ['Stress', 'Sedih', 'Marah', 'Netral', 'Tenang', 'Lelah', 'Senang'];
+const moodLabels = ['Stress', 'Sedih', 'Marah', 'Netral', 'Tenang', 'Lelah', 'Bahagia'];
 
 export default function DetailKaryawanScreen() {
   const navigation = useNavigation();

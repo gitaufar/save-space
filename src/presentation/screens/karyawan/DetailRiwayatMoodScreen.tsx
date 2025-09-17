@@ -23,7 +23,7 @@ const mockMoodData = [
   },
   { 
     id: '2', 
-    value: 7, // Senang
+    value: 7, // Bahagia
     date: '2025-09-12',
     time: 'Sore',
     timeDisplay: '16:45',
@@ -94,7 +94,7 @@ export default function DetailRiwayatMoodScreen() {
     // Map mood string to numeric value (1-7)
     const moodToValue = (mood: string): number => {
       const map: Record<string, number> = {
-        stress: 1, sedih: 2, marah: 3, netral: 4, tenang: 5, lelah: 6, senang: 7
+        stress: 1, sedih: 2, marah: 3, netral: 4, tenang: 5, lelah: 6, bahagia: 7
       };
       return map[String(mood || '').toLowerCase()] || 4;
     };

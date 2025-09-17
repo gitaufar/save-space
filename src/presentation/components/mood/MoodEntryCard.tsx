@@ -13,7 +13,7 @@ import SenangSvg from '../../../assets/moods/senang.svg';
 interface MoodEntryCardProps {
   time: string;
   timeDisplay: string; // Format jam (08:30)
-  moodType: 'stress' | 'marah' | 'sedih' | 'lelah' | 'netral' | 'tenang' | 'senang';
+  moodType: 'stress' | 'marah' | 'sedih' | 'lelah' | 'netral' | 'tenang' | 'bahagia';
   note: string;
   energyLevel: 'rendah' | 'sedang' | 'tinggi';
   focusLevel: 'buruk' | 'ok' | 'baik' | 'membaik';
@@ -49,7 +49,7 @@ export const MoodEntryCard = ({
     lelah: LelahSvg,
     netral: NetralSvg,
     tenang: TenangSvg,
-    senang: SenangSvg
+    bahagia: SenangSvg
   };
   
   // Dapatkan komponen SVG sesuai jenis mood

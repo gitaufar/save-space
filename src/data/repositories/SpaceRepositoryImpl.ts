@@ -70,7 +70,7 @@ export class SpaceRepositoryImpl implements SpaceRepository {
   }
 
   async joinSpaceByInvitationCode(userId: string, code: string): Promise<User> {
-    // Cari space berdasarkan ID (bukan invitation_code)
+    // Cari space berdasarkan ID (invitation code adalah space ID)
     const { data: space, error: spaceError } = await supabase
       .from("spaces")
       .select("id")
@@ -90,5 +90,45 @@ export class SpaceRepositoryImpl implements SpaceRepository {
 
     if (userError) throw userError;
     return user as User;
+  }
+
+  async refreshInvitationCode(oldSpaceId: string): Promise<Space> {
+    // 1. Ambil data space lama
+    const { data: oldSpace, error: fetchError } = await supabase
+      .from("spaces")
+      .select("*")
+      .eq("id", oldSpaceId)
+      .single();
+
+    if (fetchError) throw fetchError;
+    if (!oldSpace) throw new Error("Space not found");
+
+    // 2. Buat space baru dengan data yang sama (ID akan di-generate otomatis)
+    const { name, division, job_desc, work_hours, work_culture } = oldSpace;
+    const { data: newSpace, error: createError } = await supabase
+      .from("spaces")
+      .insert([{ name, division, job_desc, work_hours, work_culture }])
+      .select()
+      .single();
+
+    if (createError) throw createError;
+
+    // 3. Update semua user yang menggunakan space lama ke space baru
+    const { error: updateUsersError } = await supabase
+      .from("app_users")
+      .update({ space_id: newSpace.id })
+      .eq("space_id", oldSpaceId);
+
+    if (updateUsersError) throw updateUsersError;
+
+    // 4. Hapus space lama
+    const { error: deleteError } = await supabase
+      .from("spaces")
+      .delete()
+      .eq("id", oldSpaceId);
+
+    if (deleteError) throw deleteError;
+
+    return newSpace as Space;
   }
 }

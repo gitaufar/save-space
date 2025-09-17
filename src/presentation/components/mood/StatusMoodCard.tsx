@@ -12,7 +12,7 @@ import SenangSvg from '../../../assets/moods/senang.svg';
 
 // Interface untuk props
 interface StatusMoodCardProps {
-  moodType: 'Stress' | 'Marah' | 'Sedih' | 'Lelah' | 'Netral' | 'Tenang' | 'Senang';
+  moodType: 'Stress' | 'Marah' | 'Sedih' | 'Lelah' | 'Netral' | 'Tenang' | 'Bahagia';
 }
 
 // Menggunakan arrow function untuk deklarasi komponen
@@ -25,7 +25,7 @@ export const StatusMoodCard = ({ moodType }: StatusMoodCardProps) => {
     Lelah: { border: 'border-purple-300', bg: 'bg-purple-100', text: 'Lelah', textColor: 'text-purple-600', icon: LelahSvg },
     Netral: { border: 'border-gray-300', bg: 'bg-gray-100', text: 'Netral', textColor: 'text-gray-600', icon: NetralSvg },
     Tenang: { border: 'border-teal-300', bg: 'bg-teal-100', text: 'Tenang', textColor: 'text-teal-600', icon: TenangSvg },
-    Senang: { border: 'border-green-300', bg: 'bg-green-100', text: 'Senang', textColor: 'text-green-600', icon: SenangSvg }
+    Bahagia: { border: 'border-green-300', bg: 'bg-green-100', text: 'Bahagia', textColor: 'text-green-600', icon: SenangSvg }
   };
 
   const safeMood = (moodType as any) in moodConfig ? moodType : 'Netral';

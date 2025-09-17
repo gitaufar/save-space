@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { View, Text, TextInput, ScrollView } from 'react-native';
+import { View, Text, TextInput, ScrollView, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { Button } from '../../components/common/Button';
@@ -24,6 +24,11 @@ export default function MoodCheckScreen() {
   const { setInputText, predictMood } = useMoodViewModel();
   const [workStartMinutes, setWorkStartMinutes] = useState<number>(9 * 60);
   const [space, setSpace] = useState<any>(null);
+
+  // Handler untuk back button
+  const handleGoBack = () => {
+    navigation.goBack();
+  };
 
   // Gemini wiring (follow HomeScreen usage)
   const datasource = useMemo(() => new GeminiRemoteDatasourceImpl(), []);
@@ -82,7 +87,7 @@ export default function MoodCheckScreen() {
       lelah: 'Lelah',
       netral: 'Netral',
       tenang: 'Tenang',
-      senang: 'Senang',
+      bahagia: 'Bahagia',
     };
     return map[t] || (t.charAt(0).toUpperCase() + t.slice(1));
   };
@@ -115,20 +120,17 @@ export default function MoodCheckScreen() {
 
       // 3) Generate AI Daily Insight via Gemini using the employee's answer + predicted mood + space context
       const s = space || {};
-      const insightPrompt = `Anda adalah AI HR Assistant. 
-Berdasarkan jawaban karyawan berikut: "${moodNote.trim()}", 
-klasifikasi mood: ${moodLabel} (keyakinan ${prediction?.confidence ?? '-'}), 
-dan data karyawan:
-- ID: ${s.id ?? '-'}
-- Nama: ${s.name ?? '-'}
+      const insightPrompt = `Anda adalah AI Assistant untuk karyawan. 
+Berdasarkan jawaban Anda: "${moodNote.trim()}", 
+klasifikasi mood: ${moodLabel},
+dan konteks kerja:
 - Divisi: ${s.division ?? '-'}
 - Job Desc: ${s.job_desc ?? '-'}
 - Jam Kerja: ${s.work_hours ?? '-'}
 - Budaya Kerja: ${s.work_culture ?? '-'}
-- Dibuat pada: ${s.created_at ?? '-'}
-- Diperbarui pada: ${s.updated_at ?? '-'}
 
-Tulis AI Daily Insight SINGKAT (maks 2 kalimat, <=200 karakter), suportif dan actionable. 
+Berikan insight personal yang membantu Anda mengelola hari kerja dengan lebih baik.
+Tulis AI Daily Insight SINGKAT (maks 2 kalimat, <=200 karakter), suportif dan actionable untuk diri Anda sendiri. 
 Outputkan hanya teks insight dalam Bahasa Indonesia.`;
       let insight = '';
       try {
@@ -192,8 +194,14 @@ Berikan observasi singkat yang suportif dan 1-2 saran praktis.`;
   return (
     <View className="flex-1 bg-[#FAFAFA]">
       {/* Header */}
-      <View className="flex items-center h-32 px-5 pt-4 bg-primary">
-        <Text className="text-lg font-medium text-[#FAFAFA] pt-10">Mood Check</Text>
+      <View className="flex-row items-center justify-between h-32 px-5 pt-4 bg-primary">
+        <TouchableOpacity 
+          className="absolute left-5 top-12 z-10 p-2"
+          onPress={handleGoBack}
+        >
+          <MaterialIcons name="arrow-back" size={24} color="#FAFAFA" />
+        </TouchableOpacity>
+        <Text className="flex-1 text-lg font-medium text-[#FAFAFA] pt-10 text-center">Mood Check</Text>
       </View>
 
       <ScrollView 

@@ -17,20 +17,20 @@ interface MoodData {
 
 // Mapping dari value ke jenis mood
 const getMoodType = (value: number) => {
-  const moodTypes = ['stress', 'marah', 'sedih', 'lelah', 'netral', 'tenang', 'senang'];
-  return moodTypes[value - 1] as 'stress' | 'marah' | 'sedih' | 'lelah' | 'netral' | 'tenang' | 'senang';
+  const moodTypes = ['stress', 'marah', 'sedih', 'lelah', 'netral', 'tenang', 'bahagia'];
+  return moodTypes[value - 1] as 'stress' | 'marah' | 'sedih' | 'lelah' | 'netral' | 'tenang' | 'bahagia';
 };
 
 // Convert mood type untuk StatusMoodCard
-const getMoodTypeForCard = (moodType: string): 'Stress' | 'Marah' | 'Sedih' | 'Lelah' | 'Netral' | 'Tenang' | 'Senang' => {
-  const moodMap: { [key: string]: 'Stress' | 'Marah' | 'Sedih' | 'Lelah' | 'Netral' | 'Tenang' | 'Senang' } = {
+const getMoodTypeForCard = (moodType: string): 'Stress' | 'Marah' | 'Sedih' | 'Lelah' | 'Netral' | 'Tenang' | 'Bahagia' => {
+  const moodMap: { [key: string]: 'Stress' | 'Marah' | 'Sedih' | 'Lelah' | 'Netral' | 'Tenang' | 'Bahagia' } = {
     'stress': 'Stress',
     'marah': 'Marah',
     'sedih': 'Sedih',
     'lelah': 'Lelah',
     'netral': 'Netral',
     'tenang': 'Tenang',
-    'senang': 'Senang'
+    'bahagia': 'Bahagia'
   };
   return moodMap[moodType] || 'Netral';
 };

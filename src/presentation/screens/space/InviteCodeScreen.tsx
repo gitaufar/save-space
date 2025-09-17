@@ -4,7 +4,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { SpaceStackParamList } from '../../navigation/SpaceNavigator';
 import InvitationKey from '../../../assets/space/invitation_key.svg';
-import { Copy } from 'lucide-react-native';
+import { Copy, ArrowLeft } from 'lucide-react-native';
 import { Button } from '../../components/common/Button';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -15,6 +15,12 @@ export default function InviteCodeScreen() {
   const route = useRoute();
   const { token } = route.params as { token: string; };
   const { fetchCurrentUser } = useAuth();
+  
+  // Handler untuk back button
+  const handleGoBack = () => {
+    navigation.goBack();
+  };
+  
   const displayToken = useMemo(() => {
     const raw = String(token || '');
     // If already a UUID (8-4-4-4-12), show as-is
@@ -28,7 +34,18 @@ export default function InviteCodeScreen() {
 
   return (
     <View className="flex-1 bg-[#FAFAFA]">
-      <View className="px-5 pt-24">
+      {/* Header dengan back button */}
+      <View className="flex-row items-center px-5 pt-12 pb-6">
+        <TouchableOpacity 
+          onPress={handleGoBack}
+          className="p-2 mr-4"
+        >
+          <ArrowLeft size={24} color="#111827" />
+        </TouchableOpacity>
+        <Text className="text-lg font-semibold text-gray-900">Kode Undangan</Text>
+      </View>
+      
+      <View className="px-5">
         <View className="bg-white rounded-2xl p-8 border border-[#E5E7EB]">
           <View className="flex items-center justify-center mb-4">
             <View className="bg-[#FFB74D]/20 p-3 rounded-xl">

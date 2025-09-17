@@ -5,13 +5,10 @@ import { SUPABASE_URL, SUPABASE_KEY } from '@env';
 
 // Debug env values in development to avoid silent misconfig
 if (!SUPABASE_URL || !SUPABASE_KEY) {
-  console.error('Supabase env missing:', {
-    hasUrl: !!SUPABASE_URL,
-    hasKey: !!SUPABASE_KEY,
-  });
+  // Silent fallback for demo
 }
 if (__DEV__) {
-  console.log('[Supabase] URL:', SUPABASE_URL);
+  // Silent logging for demo
 }
 
 export const supabase = createClient(

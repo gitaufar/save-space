@@ -40,7 +40,6 @@ export default function NewSpaceScreen() {
       const token = space.id;
       navigation.navigate('InviteCode' as never, { token } as never);
     } catch (e: any) {
-      console.log('Create space error:', e);
       showError('Gagal membuat ruang', e?.message || 'Terjadi kesalahan');
     } finally {
       setLoading(false);

@@ -80,7 +80,6 @@ export const MoodHistoryProvider: React.FC<{ children: React.ReactNode }> = ({ c
       const chartData = convertToChartData(responses || []);
       setMoodHistory(chartData);
     } catch (err) {
-      console.error('Error fetching mood history:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch mood history');
       setMoodHistory([]);
     } finally {
@@ -94,7 +93,6 @@ export const MoodHistoryProvider: React.FC<{ children: React.ReactNode }> = ({ c
       const responses = await dataSource.getMoodResponsesLast7Days(userId);
       return convertToChartData(responses || []);
     } catch (err) {
-      console.error('Error fetching mood history for user:', err);
       return [];
     }
   }, [dataSource]);

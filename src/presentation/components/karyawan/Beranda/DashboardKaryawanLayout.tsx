@@ -26,25 +26,25 @@ export const mainBoxDefaultData = {
     paragraph:
       'Ingat, keseimbangan kerja dan istirahat adalah kunci produktivitas.',
     image: <WelcomeIcon width={120} height={120} />,
-    onPress: () => console.log('Welcome pressed'),
+    onPress: () => {},
   },
   [MainBoxType.MOOD_CHECK]: {
     title: 'Mood Check!',
     paragraph: 'Bagikan perasaan Anda hari ini!',
     image: <MoodIcon width={120} height={120} />,
-    onPress: () => console.log('Mood check pressed'),
+    onPress: () => {},
   },
   [MainBoxType.CBI_TEST]: {
     title: 'Yuk, Cek Burnout!',
     paragraph: 'Ikuti CBI Test untuk memahami kondisi kerja Anda',
     image: <CBIIcon width={120} height={120} />,
-    onPress: () => console.log('CBI test pressed'),
+    onPress: () => {},
   },
   [MainBoxType.AI_INSIGHT]: {
     title: 'AI Daily Insight',
     paragraph: 'Wawasan AI berdasarkan mood Anda hari ini',
     image: <AILampIcon width={120} height={120} />,
-    onPress: () => console.log('AI insight pressed'),
+    onPress: () => {},
   },
 };
 
@@ -70,7 +70,6 @@ export const DashboardKaryawanLayout = () => {
   const getCurrentMainBoxType = (): MainBoxType => {
     // Prioritas 1: CBI test yang belum selesai
     if (hasPendingCBI) {
-      console.log('📋 Showing CBI_TEST (pending test)');
       return MainBoxType.CBI_TEST;
     }
 
@@ -78,23 +77,15 @@ export const DashboardKaryawanLayout = () => {
     const currentHour = now.getHours();
     const currentMinutes = currentHour * 60 + now.getMinutes();
 
-    console.log(
-      '🕐 Current time:',
-      `${currentHour}:${now.getMinutes().toString().padStart(2, '0')}`,
-    );
-    console.log('🤖 Has AI insight today:', !!aiInsight);
-
     // Logic MainBox berdasarkan waktu dan kondisi hari ini:
     
     // 1. Jam 00:00 - 06:00: WELCOME (reset period)
     if (currentHour >= 0 && currentHour < 6) {
-      console.log('� Showing WELCOME (midnight reset period)');
       return MainBoxType.WELCOME;
     }
     
     // 2. Jam 06:00 - jam kerja dimulai: WELCOME
     if (currentHour >= 6 && currentMinutes < workStartMinutes) {
-      console.log('🌅 Showing WELCOME (before work hours)');
       return MainBoxType.WELCOME;
     }
     
@@ -102,17 +93,14 @@ export const DashboardKaryawanLayout = () => {
     if (currentMinutes >= workStartMinutes) {
       // Jika sudah ada AI insight hari ini, langsung tampilkan AI_INSIGHT
       if (aiInsight) {
-        console.log('🤖 Showing AI_INSIGHT (already have today\'s insight)');
         return MainBoxType.AI_INSIGHT;
       }
       
       // Jika belum ada AI insight, tampilkan MOOD_CHECK untuk generate insight
-      console.log('😊 Showing MOOD_CHECK (need mood to generate insight)');
       return MainBoxType.MOOD_CHECK;
     }
     
     // Default fallback
-    console.log('🌙 Showing WELCOME (default)');
     return MainBoxType.WELCOME;
   };
 

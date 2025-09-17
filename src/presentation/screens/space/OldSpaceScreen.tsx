@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, ScrollView, Alert } from "react-native"; // Tambahkan ScrollView
+import { View, Text, TouchableOpacity, ScrollView } from "react-native"; // Tambahkan ScrollView
 import React, { useState } from "react";
 import SpaceHeader from "../../components/space/headerSpace";
 import Logo from '../../../assets/space/old_space.svg';
@@ -11,10 +11,12 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { useAuth } from "../../contexts/AuthContext";
 import { SpaceRepositoryImpl } from "../../../data/repositories/SpaceRepositoryImpl";
 import { JoinSpaceByCodeUseCase } from "../../../domain/usecases/space/JoinSpaceByCodeUseCase";
+import { useConfirmCard } from "../../contexts/ConfirmCardContext";
 
 export default function OldSpaceScreen() {
     const navigation = useNavigation();
     const { user, fetchCurrentUser } = useAuth();
+    const { showError, showWarning } = useConfirmCard();
     const [spaceCode, setSpaceCode] = useState('');
     const [loading, setLoading] = useState(false);
 
@@ -61,11 +63,11 @@ export default function OldSpaceScreen() {
                                 onPress={async () => {
                                   const code = spaceCode.trim();
                                   if (!code) {
-                                    Alert.alert('Validasi', 'Mohon masukkan ID ruang yang valid.');
+                                    showWarning('Validasi', 'Mohon masukkan ID ruang yang valid.');
                                     return;
                                   }
                                   if (!user?.id) {
-                                    Alert.alert('Error', 'User belum terautentikasi. Silakan login kembali.');
+                                    showError('Error', 'User belum terautentikasi. Silakan login kembali.');
                                     return;
                                   }
                                   setLoading(true);
@@ -76,7 +78,7 @@ export default function OldSpaceScreen() {
                                     // refresh user so AppNavigator navigates to dashboard
                                     await fetchCurrentUser();
                                   } catch (e: any) {
-                                    Alert.alert('Gagal Bergabung', e?.message || 'Kode ruang tidak ditemukan');
+                                    showError('Gagal Bergabung', e?.message || 'Kode ruang tidak ditemukan');
                                   } finally {
                                     setLoading(false);
                                   }

@@ -1,18 +1,20 @@
 import React from "react";
-import { View, Text, TouchableOpacity, Alert } from "react-native";
+import { View, Text, TouchableOpacity } from "react-native";
 import { Home, Settings } from "lucide-react-native";
 import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import CBIIcon from "../../../assets/hrd/cbi_task.svg"; // path svg
 import { useCBI } from "../../contexts/CBIContext";
 import { useAuth } from "../../contexts/AuthContext";
+import { useConfirmCard } from "../../contexts/ConfirmCardContext";
 
 export const NavbarManager = ({ state, navigation }: BottomTabBarProps) => {
   const { createCBITestForSpace, loading, error, success } = useCBI();
   const { user } = useAuth();
+  const { showError, showWarning, showSuccess } = useConfirmCard();
 
   const handleCBIPress = async () => {
     if (!user?.space_id) {
-      Alert.alert(
+      showError(
         "Error", 
         "Anda belum tergabung dalam space. Silakan gabung space terlebih dahulu."
       );
@@ -24,29 +26,20 @@ export const NavbarManager = ({ state, navigation }: BottomTabBarProps) => {
     }
 
     try {
-      Alert.alert(
+      showWarning(
         "Konfirmasi",
         "Apakah Anda yakin ingin membuat CBI Test untuk semua karyawan di space ini?",
-        [
-          {
-            text: "Batal",
-            style: "cancel"
-          },
-          {
-            text: "Ya, Buat",
-            onPress: async () => {
-              try {
-                await createCBITestForSpace(user.space_id!);
-                Alert.alert("Berhasil", "CBI Test berhasil dibuat untuk semua karyawan");
-              } catch (error) {
-                Alert.alert("Error", "Gagal membuat CBI Test. Silakan coba lagi.");
-              }
-            }
+        async () => {
+          try {
+            await createCBITestForSpace(user.space_id!);
+            showSuccess("Berhasil", "CBI Test berhasil dibuat untuk semua karyawan");
+          } catch (error) {
+            showError("Error", "Gagal membuat CBI Test. Silakan coba lagi.");
           }
-        ]
+        }
       );
     } catch (error) {
-      Alert.alert("Error", "Terjadi kesalahan. Silakan coba lagi.");
+      showError("Error", "Terjadi kesalahan. Silakan coba lagi.");
     }
   };
   return (

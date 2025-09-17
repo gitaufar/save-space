@@ -1,14 +1,16 @@
 import React, { useState } from "react";
-import { View, Text, ScrollView, Image, Alert } from "react-native";
+import { View, Text, ScrollView, Image } from "react-native";
 import { ButtonPengaturan } from "./ButtonPengaturan";
 import { User, LogOut, HelpCircle, Info } from "lucide-react-native";
 import { useAuth } from "../../../contexts/AuthContext";
 import { useNavigation } from "@react-navigation/native";
 import { LogoutModal } from "../../common/LogoutModal";
+import { useConfirmCard } from "../../../contexts/ConfirmCardContext";
 
 export const PengaturanKaryawanLayout = () => {
     const navigation = useNavigation<any>();
     const { user, signOut } = useAuth();
+    const { showError } = useConfirmCard();
     const displayName = user?.name && user.name.trim().length > 0 ? user.name : (user?.email?.split("@")[0] ?? "-");
     const displayEmail = user?.email ?? "-";
     const roleLabel = user?.role ?? '-';
@@ -20,7 +22,7 @@ export const PengaturanKaryawanLayout = () => {
         try {
             await signOut();
         } catch (e: any) {
-            Alert.alert('Error', e?.message || 'Gagal logout');
+            showError('Error', e?.message || 'Gagal logout');
         } finally {
             setShowLogout(false);
         }

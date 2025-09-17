@@ -1,4 +1,5 @@
 // repositories/SpaceRepositoryImpl.ts
+import { supabase } from "../../core/utils/SupabaseClient";
 import { Space } from "../../domain/entities/Space";
 import { User } from "../../domain/entities/User";
 import { SpaceRepository } from "../../domain/repositories/SpaceRepository";

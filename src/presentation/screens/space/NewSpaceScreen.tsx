@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import React, { useState } from 'react';
 import SpaceHeader from '../../components/space/headerSpace';
 import Logo from '../../../assets/space/new_space.svg';
@@ -9,9 +9,11 @@ import Division from '../../../assets/space/division.svg';
 import { Button } from '../../components/common/Button';
 import { SpaceRepositoryImpl } from '../../../data/repositories/SpaceRepositoryImpl';
 import { CreateSpaceUseCase } from '../../../domain/usecases/space/CreateSpaceUseCase';
+import { useConfirmCard } from '../../contexts/ConfirmCardContext';
 
 export default function NewSpaceScreen() {
   const navigation = useNavigation();
+  const { showError } = useConfirmCard();
   const [name, setName] = useState('');
   const [divisi, setDivisi] = useState('');                                                                      
   const [deskripsi, setDeskripsi] = useState('');
@@ -39,7 +41,7 @@ export default function NewSpaceScreen() {
       navigation.navigate('InviteCode' as never, { token } as never);
     } catch (e: any) {
       console.log('Create space error:', e);
-      Alert.alert('Gagal membuat ruang', e?.message || 'Terjadi kesalahan');
+      showError('Gagal membuat ruang', e?.message || 'Terjadi kesalahan');
     } finally {
       setLoading(false);
     }

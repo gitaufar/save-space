@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { View, Text, TextInput, ScrollView, Alert } from 'react-native';
+import { View, Text, TextInput, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { Button } from '../../components/common/Button';
@@ -12,12 +12,14 @@ import { GeminiRepositoryImpl } from '../../../data/repositories/GeminiRepositor
 import { GetResponseGeminiUseCase } from '../../../domain/usecases/ai/GetResponseGeminiUseCase';
 import { useGeminiViewModel } from '../../viewModels/common/GeminiViewModel';
 import { useMood } from '../../contexts/MoodContext';
+import { useConfirmCard } from '../../contexts/ConfirmCardContext';
 
 export default function MoodCheckScreen() {
   const navigation = useNavigation();
   const [moodNote, setMoodNote] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const { user } = useAuth();
+  const { showError, showSuccess } = useConfirmCard();
   const ds = useMemo(() => new SupabaseDataSource(), []);
   const { setInputText, predictMood } = useMoodViewModel();
   const [workStartMinutes, setWorkStartMinutes] = useState<number>(9 * 60);
@@ -87,7 +89,7 @@ export default function MoodCheckScreen() {
 
   const handleSubmit = async () => {
     if (!user?.id) {
-      Alert.alert('Error', 'Anda belum masuk.');
+      showError('Error', 'Anda belum masuk.');
       return;
     }
     if (moodNote.trim().length < minCharacters) return;
@@ -174,10 +176,9 @@ Berikan observasi singkat yang suportif dan 1-2 saran praktis.`;
       // Immediately refresh mood status so MainBox updates without re-login
       try { await refreshMoodStatus(); } catch {}
 
-      Alert.alert('Tersimpan', 'Mood berhasil dikirim dan insight dibuat.');
-      navigation.goBack();
+      showSuccess('Tersimpan', 'Mood berhasil dikirim dan insight dibuat.', () => navigation.goBack());
     } catch (e: any) {
-      Alert.alert('Gagal', e?.message || 'Tidak dapat menyimpan mood.');
+      showError('Gagal', e?.message || 'Tidak dapat menyimpan mood.');
     } finally {
       setSubmitting(false);
     }

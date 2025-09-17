@@ -76,7 +76,6 @@ export const MoodProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setHasMorningMood(morning);
       setHasEveningMood(evening);
     } catch (err) {
-      console.error('Error fetching mood status:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch mood status');
       setTodayMoodResponse(null);
       setHasMoodToday(false);

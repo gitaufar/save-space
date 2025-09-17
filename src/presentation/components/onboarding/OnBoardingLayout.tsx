@@ -22,7 +22,9 @@ export const OnBoardingLayout = ({ slides, onBoardingShowed }: OnBoardingLayoutP
     if (currentIndex < slides.length - 1) {
       setCurrentIndex(currentIndex + 1);
     } else {
-      console.log('Mulai ditekan'); // ganti dengan navigation.replace('Home') bila perlu
+      const handleMulai = () => {
+    onBoardingShowed(); // ganti dengan navigation.replace('Home') bila perlu
+  };
     }
   };
 
@@ -60,7 +62,7 @@ export const OnBoardingLayout = ({ slides, onBoardingShowed }: OnBoardingLayoutP
           </View>
           <Text
             className="text-[#6B7280] text-lg font-semibold"
-            onPress={() => console.log('Lewati ditekan')}
+            onPress={() => onBoardingShowed()}
           >
             Lewati
           </Text>

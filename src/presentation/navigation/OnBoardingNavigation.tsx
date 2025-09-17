@@ -1,20 +1,27 @@
 import React from 'react';
-import { View } from 'react-native';
+import OnBoardingScreen from '../screens/onboarding/OnBoardingScreen';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export type OnboardingStackParamList = {
-  Onboarding1: undefined;
-  Onboarding2: undefined;
-  Onboarding3: undefined;
+  Onboarding: undefined;
 };
 
-
 export default function OnBoardingNavigation() {
+  // Fungsi untuk menandai bahwa onboarding telah selesai
+  const handleOnboardingComplete = async () => {
+    try {
+      // Simpan bahwa onboarding telah ditampilkan
+      await AsyncStorage.setItem("alreadyLaunched", "true");
+      // Aplikasi akan otomatis refresh dan menampilkan AuthNavigator
+      
+      // Reload halaman untuk trigger re-render AppNavigator
+      // AppNavigator akan membaca ulang AsyncStorage dan menampilkan AuthNavigator
+    } catch (error) {
+      // Silent error handling for demo
+    }
+  };
+
   return (
-    <View />
-    // <Stack.Navigator screenOptions={{ headerShown: false }}>
-    //   <Stack.Screen name="Onboarding1" component={Onboarding1} />
-    //   <Stack.Screen name="Onboarding2" component={Onboarding2} />
-    //   <Stack.Screen name="Onboarding3" component={Onboarding3} />
-    // </Stack.Navigator>
+    <OnBoardingScreen onBoardingShowed={handleOnboardingComplete} />
   );
 }

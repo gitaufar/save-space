@@ -509,12 +509,10 @@ export class SupabaseDataSource {
       .eq('role', 'Karyawan');
 
     if (employeesError) {
-      console.error('Error fetching employees:', employeesError.message);
       throw employeesError;
     }
 
     if (!employees || employees.length === 0) {
-      console.log('Tidak ada employee di space ini');
       return;
     }
 
@@ -535,11 +533,9 @@ export class SupabaseDataSource {
       .insert(cbiTests);
 
     if (insertError) {
-      console.error('Error inserting CBITest:', insertError.message);
       throw insertError;
     }
 
-    console.log('CBITest created:', inserted);
     return inserted;
   }
 

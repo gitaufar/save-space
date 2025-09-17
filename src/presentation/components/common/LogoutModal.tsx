@@ -29,7 +29,7 @@ export const LogoutModal: React.FC<LogoutConfirmationModalProps> = ({
           </Text>
 
           {/* Buttons */}
-          <View className="flex-row space-x-4">
+          <View className="flex-row gap-4">
             <TouchableOpacity
               onPress={onCancel}
               className="flex-1 py-3 rounded-xl border border-gray-300 items-center"

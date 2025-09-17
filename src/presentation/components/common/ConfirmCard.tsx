@@ -118,7 +118,7 @@ export const ConfirmCard: React.FC<ConfirmCardProps> = ({
           </Text>
 
           {/* Buttons */}
-          <View className={`${showCancel ? 'flex-row space-x-4' : 'w-full'}`}>
+          <View className={`${showCancel ? 'flex-row gap-4' : 'w-full'}`}>
             {showCancel && (
               <TouchableOpacity
                 onPress={handleCancel}

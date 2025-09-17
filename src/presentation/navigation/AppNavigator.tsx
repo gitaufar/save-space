@@ -64,7 +64,7 @@ export default function AppNavigator() {
         <AuthNavigator />
       ) : !user.space_id ? (
         user.role === "Manager" ? (
-          <SpaceNavigator initialRouteName={(initialSpaceRoute ?? "NewSpace") as any}/>
+          <SpaceNavigator initialRouteName={(initialSpaceRoute ?? "Space") as any}/>
         ) : (
           <SpaceNavigator initialRouteName="OldSpace"/>
         )

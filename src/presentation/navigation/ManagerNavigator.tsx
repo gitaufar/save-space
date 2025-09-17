@@ -2,9 +2,9 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import DashboardManager from '../screens/manager/DashboardManager';
-import PengaturanKaryawanScreen from '../screens/karyawan/PengaturanKaryawanScreen';
+import PengaturanManagerScreen from '../screens/manager/PengaturanManagerScreen';
+import AturRuangScreen from '../screens/manager/AturRuangScreen';
 import ListKaryawanScreen from '../screens/manager/ListKaryawanScreen.tsx';
-import CBITestScreen from '../screens/cbiTest/CBITestScreen';
 import DetailKaryawanScreen from '../screens/manager/DetailKaryawan';
 import DetailRiwayatMoodScreen from '../screens/karyawan/DetailRiwayatMoodScreen';
 import ProfileKaryawan from '../screens/profile/ProfileScreen';
@@ -33,7 +33,7 @@ function MainTabNavigator() {
       screenOptions={{ headerShown: false }}
     >
       <Tab.Screen name="DashboardManager" component={DashboardManager} />
-      <Tab.Screen name="PengaturanManager" component={PengaturanKaryawanScreen} />
+      <Tab.Screen name="PengaturanManager" component={PengaturanManagerScreen} />
     </Tab.Navigator>
   );
 }
@@ -54,6 +54,7 @@ export default function ManagerNavigator() {
         <Stack.Screen name="DetailKaryawanScreen" component={DetailKaryawanScreen} />
         <Stack.Screen name="DetailRiwayatMoodScreen" component={DetailRiwayatMoodScreen} />
         <Stack.Screen name="ProfileScreen" component={ProfileKaryawan} />
+        <Stack.Screen name="AturRuangScreen" component={AturRuangScreen} />
         {/* <Stack.Screen name="DetailManagerScreen" component={DetailManagerScreen} /> */}
       </Stack.Navigator>
     </CBIProvider>

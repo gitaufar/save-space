@@ -20,4 +20,6 @@ export interface SpaceRepository {
   deleteSpace(id: string): Promise<boolean>;
 
   joinSpaceByInvitationCode(userId: string, code: string): Promise<User>;
+
+  refreshInvitationCode(spaceId: string): Promise<Space>;
 }

@@ -18,7 +18,7 @@ type MoodType =
   | 'Lelah'
   | 'Netral'
   | 'Tenang'
-  | 'Senang';
+  | 'Bahagia';
 
 type EmployeeMoodCardProps = {
   name: string;
@@ -39,7 +39,7 @@ const moodConfig: Record<
   Lelah: { bg: 'bg-purple-100', color: '#9333EA', icon: LelahSvg },
   Netral: { bg: 'bg-gray-100', color: '#4B5563', icon: NetralSvg },
   Tenang: { bg: 'bg-teal-100', color: '#0D9488', icon: TenangSvg },
-  Senang: { bg: 'bg-green-100', color: '#16A34A', icon: SenangSvg },
+  Bahagia: { bg: 'bg-green-100', color: '#16A34A', icon: SenangSvg },
 };
 
 export default function EmployeeMoodCard({

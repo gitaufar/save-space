@@ -4,6 +4,7 @@ import { User } from '../../domain/entities/User';
 import { SpaceRepositoryImpl } from '../../data/repositories/SpaceRepositoryImpl';
 import { CreateSpaceUseCase } from '../../domain/usecases/space/CreateSpaceUseCase';
 import { JoinSpaceByCodeUseCase } from '../../domain/usecases/space/JoinSpaceByCodeUseCase';
+import { RefreshInvitationCodeUseCase } from '../../domain/usecases/space/RefreshInvitationCodeUseCase';
 import { useSpaceViewModel } from '../viewModels/space/useSpaceViewModel';
 import { useDataSource } from './DataSourceContext';
 import { useAuth } from './AuthContext';
@@ -32,6 +33,7 @@ interface SpaceContextProps {
   // Current space operations
   refreshCurrentSpace: () => Promise<void>;
   getCurrentSpace: () => Space | null;
+  refreshInvitationCode: () => Promise<void>;
 }
 
 // Default value biar tidak undefined
@@ -47,6 +49,7 @@ export const SpaceProvider: React.FC<{ children: React.ReactNode }> = ({
   const spaceRepository = new SpaceRepositoryImpl();
   const createSpaceUseCase = new CreateSpaceUseCase(spaceRepository);
   const joinSpaceByCodeUseCase = new JoinSpaceByCodeUseCase(spaceRepository);
+  const refreshInvitationCodeUseCase = new RefreshInvitationCodeUseCase(spaceRepository);
 
   const { spaces, currentUser, loading, error, createSpace, joinSpace } =
     useSpaceViewModel(createSpaceUseCase, joinSpaceByCodeUseCase);
@@ -79,6 +82,25 @@ export const SpaceProvider: React.FC<{ children: React.ReactNode }> = ({
     return currentSpace;
   }, [currentSpace]);
 
+  // Function untuk refresh invitation code
+  const refreshInvitationCode = useCallback(async () => {
+    if (!currentSpace?.id) {
+      throw new Error('No current space found');
+    }
+    
+    setSpaceLoading(true);
+    try {
+      await refreshInvitationCodeUseCase.execute(currentSpace.id);
+      // Refresh current space to get updated invitation code
+      await refreshCurrentSpace();
+    } catch (error) {
+      console.error('Error refreshing invitation code:', error);
+      throw error;
+    } finally {
+      setSpaceLoading(false);
+    }
+  }, [currentSpace?.id, refreshInvitationCodeUseCase, refreshCurrentSpace]);
+
   // Auto fetch current space ketika user space_id berubah
   useEffect(() => {
     refreshCurrentSpace();
@@ -96,7 +118,8 @@ export const SpaceProvider: React.FC<{ children: React.ReactNode }> = ({
         currentSpace,
         spaceLoading,
         refreshCurrentSpace,
-        getCurrentSpace
+        getCurrentSpace,
+        refreshInvitationCode
       }}
     >
       {children}

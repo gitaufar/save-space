@@ -4,7 +4,7 @@ import Time from '../../../assets/moods/time.svg';
 import Stats from '../../../assets/moods/stats.svg';
 
 interface MoodAnalysisCardProps {
-  averageMood: 'stress' | 'marah' | 'sedih' | 'lelah' | 'netral' | 'tenang' | 'senang';
+  averageMood: 'stress' | 'marah' | 'sedih' | 'lelah' | 'netral' | 'tenang' | 'bahagia';
   goodMoodDuration: string; // Format: "X.X jam"
   insight: string;
 }

@@ -98,6 +98,19 @@ function DonutPie({ data }: { data: DonutDatum[] }) {
 
   const total = data.reduce((acc, d) => acc + (d.value || 0), 0) || 1;
 
+  // Special case: if only one data point, create a full circle
+  if (data.length === 1) {
+    return (
+      <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+        <Path
+          d={`M ${cx} ${cy - outerR} A ${outerR} ${outerR} 0 1 1 ${cx - 0.01} ${cy - outerR} Z M ${cx} ${cy - innerR} A ${innerR} ${innerR} 0 1 0 ${cx - 0.01} ${cy - innerR} Z`}
+          fill={data[0].color}
+          fillRule="evenodd"
+        />
+      </Svg>
+    );
+  }
+
   let startAngle = -90; // start at 12 o'clock
 
   const segments = data.map((d) => {

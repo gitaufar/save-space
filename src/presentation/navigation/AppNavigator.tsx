@@ -7,6 +7,8 @@ import KaryawanNavigator from "./KaryawanNavigator";
 import ManagerNavigator from "./ManagerNavigator";
 import { useAuth } from "../contexts/AuthContext";
 import SpaceNavigator from "./SpaceNavigator";
+// Import SplashScreen
+import SplashScreen from "../screens/splash/SplashScreen";
 
 const MyTheme = {
   ...DefaultTheme,
@@ -20,18 +22,37 @@ export default function AppNavigator() {
   const [isFirstLaunch, setIsFirstLaunch] = useState<boolean | null>(null);
   const { user, fetchCurrentUser } = useAuth();
   const [initialSpaceRoute, setInitialSpaceRoute] = useState<"Space" | "NewSpace" | "OldSpace" | null>(null);
+  // Tambahkan state untuk kontrol splash screen
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    AsyncStorage.getItem("alreadyLaunched").then((value) => {
-      if (value == null) {
-        AsyncStorage.setItem("alreadyLaunched", "true");
-        setIsFirstLaunch(true);
-      } else {
-        setIsFirstLaunch(false);
+    // Fungsi untuk melakukan inisialisasi aplikasi
+    const initializeApp = async () => {
+      try {
+        // Periksa apakah ini pertama kali aplikasi diluncurkan
+        const launchValue = await AsyncStorage.getItem("alreadyLaunched");
+        
+        if (launchValue == null) {
+          await AsyncStorage.setItem("alreadyLaunched", "true");
+          setIsFirstLaunch(true);
+        } else {
+          setIsFirstLaunch(false);
+        }
+        
+        // Ambil session user
+        await fetchCurrentUser();
+        
+        // Buat timeout untuk menampilkan splash screen minimal 2 detik
+        setTimeout(() => {
+          setIsLoading(false);
+        }, 2000);
+      } catch (error) {
+        console.error("Error initializing app:", error);
+        setIsLoading(false);
       }
-    });
+    };
 
-    fetchCurrentUser(); // ambil session user dari supabase / storage
+    initializeApp();
   }, [fetchCurrentUser]);
 
   // Baca hint satu-kali setelah user berubah (mis. selesai register)
@@ -52,8 +73,9 @@ export default function AppNavigator() {
     readPostRegisterRoute();
   }, [user]);
 
-  if (isFirstLaunch === null) {
-    return null; // splash screen bisa disini
+  // Tampilkan splash screen saat loading
+  if (isLoading || isFirstLaunch === null) {
+    return <SplashScreen />;
   }
 
   return (

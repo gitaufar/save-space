@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { NavigationContainer, DefaultTheme } from "@react-navigation/native";
-import OnBoardingNavigation from "./OnBoardingNavigation";
 import AuthNavigator from "./AuthNavigator";
 import KaryawanNavigator from "./KaryawanNavigator";
 import ManagerNavigator from "./ManagerNavigator";
@@ -9,6 +8,7 @@ import { useAuth } from "../contexts/AuthContext";
 import SpaceNavigator from "./SpaceNavigator";
 // Import SplashScreen
 import SplashScreen from "../screens/splash/SplashScreen";
+import OnBoardingNavigation from "./OnBoardingNavigation"; // Gunakan OnBoardingNavigation
 
 const MyTheme = {
   ...DefaultTheme,
@@ -81,7 +81,7 @@ export default function AppNavigator() {
   return (
     <NavigationContainer theme={MyTheme}>
       {isFirstLaunch ? (
-        <OnBoardingNavigation />
+        <OnBoardingNavigation /> // Gunakan OnBoardingNavigation bukan OnBoardingScreen
       ) : !user ? (
         <AuthNavigator />
       ) : !user.space_id ? (

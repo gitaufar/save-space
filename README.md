@@ -192,7 +192,7 @@ Untuk troubleshooting lebih detail, lihat [Panduan Instalasi](INSTALASI.md).
 
 ## 📞 Support
 
-- 📧 Email: [Your Email]
+- 📧 Email: zhafiraufar123@gmail.com
 - 🐛 Issues: [GitHub Issues](https://github.com/gitaufar/cipta-ruang/issues)
 - 📖 Wiki: [GitHub Wiki](https://github.com/gitaufar/cipta-ruang/wiki)
 

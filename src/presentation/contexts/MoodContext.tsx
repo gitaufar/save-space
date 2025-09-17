@@ -65,7 +65,7 @@ export const MoodProvider: React.FC<{ children: React.ReactNode }> = ({ children
           return { start: sH * 60 + sM, end: eH * 60 + eM };
         } catch { return { start: 9 * 60, end: 17 * 60 }; }
       };
-      const { start, end } = parseStartEnd(currentSpace?.work_hours);
+      const { start, end } = parseStartEnd(currentSpace?.work_hours ?? undefined);
       let morning = false, evening = false;
       (responses || []).forEach((r: any) => {
         const t = new Date(r.created_at);

@@ -20,6 +20,7 @@ import { ChangePasswordUseCase } from './src/domain/usecases/auth/ChangePassword
 import { CBIProvider } from './src/presentation/contexts/CBIContext';
 import { CreateCBITestForSpaceUseCase } from './src/domain/usecases/cbi/CreateCBITestForSpaceUseCase';
 import { CBIRepositoryImpl } from './src/data/repositories/CBIRepositoryImpl';
+import { ConfirmCardProvider } from './src/presentation/contexts/ConfirmCardContext';
 
 const dataSource = new AuthDataSource();
 const authRepository = new AuthRepositoryImpl(dataSource);
@@ -57,7 +58,9 @@ export default function App() {
                     createCBITestForSpaceUseCase={createCBITestForSpaceUseCase} 
                     cbiRepository={cbiRepository}
                   >
-                    <AppNavigator />
+                    <ConfirmCardProvider>
+                      <AppNavigator />
+                    </ConfirmCardProvider>
                   </CBIProvider>
                 </AIInsightProvider>
               </MoodHistoryProvider>

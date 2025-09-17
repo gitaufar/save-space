@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, ScrollView, Alert } from "react-native";
+import { View, Text, ScrollView } from "react-native";
 import { Question } from "./question";
 import { Tips } from "../common/tips";
 import { Button } from "../common/Button";
@@ -15,11 +15,13 @@ import {
 import { CBICalculation } from "../../../core/utils/CBICalculation";
 import { useCBI } from "../../contexts/CBIContext";
 import { useAuth } from "../../contexts/AuthContext";
+import { useConfirmCard } from "../../contexts/ConfirmCardContext";
 
 export const CBITestLayout = () => {
     const navigation = useNavigation();
     const { markCBITestAsFinished, loading, cbiRepository, refreshCBIStatus } = useCBI();
     const { user } = useAuth();
+    const { showError, showWarning, showSuccess } = useConfirmCard();
     
     // Gabungkan semua pertanyaan menjadi satu array
     const allQuestions = [...CBI_QUESTION_PERSONAL, ...CBI_QUESTION_WORK, ...CBI_QUESTION_CLIENT];
@@ -49,7 +51,7 @@ export const CBITestLayout = () => {
         const validation = CBICalculation.validateAnswers(answers);
         
         if (!validation.isValid) {
-          Alert.alert(
+          showWarning(
             "Pertanyaan Belum Dijawab", 
             `Mohon jawab pertanyaan nomor: ${validation.missingQuestions.map(q => q + 1).join(', ')}`
           );
@@ -71,7 +73,7 @@ export const CBITestLayout = () => {
             const currentTest = await cbiRepository?.getCBITestByEmployeeId(user.id);
             
             if (!currentTest) {
-              Alert.alert(
+              showError(
                 "CBI Test Tidak Ditemukan", 
                 "CBI Test tidak ditemukan untuk user ini. Silakan hubungi manager untuk membuat test baru."
               );
@@ -91,29 +93,24 @@ export const CBITestLayout = () => {
             // Refresh CBI status immediately so dashboard hides the CBI box
             try { await refreshCBIStatus(); } catch {}
 
-            Alert.alert(
+            showSuccess(
               "CBI Test Selesai", 
               `Hasil Anda:\n\nBurnout Personal: ${scores.personalBurnout} (${interpretation.personalLevel})\nBurnout Kerja: ${scores.workBurnout} (${interpretation.workLevel})\nBurnout Klien: ${scores.clientBurnout} (${interpretation.clientLevel})\n\nSkor Keseluruhan: ${scores.summary} (${interpretation.overallLevel})`,
-              [
-                {
-                  text: "OK",
-                  onPress: () => navigation.goBack()
-                }
-              ]
+              () => navigation.goBack()
             );
           } catch (testError) {
             console.error("Error processing CBI test:", testError);
-            Alert.alert(
+            showError(
               "Error", 
               "Terjadi kesalahan saat memproses hasil tes. Pastikan Anda memiliki CBI test yang aktif."
             );
           }
         } else {
-          Alert.alert("Error", "User tidak ditemukan. Silakan login ulang.");
+          showError("Error", "User tidak ditemukan. Silakan login ulang.");
         }
       } catch (error) {
         console.error("Error submitting CBI test:", error);
-        Alert.alert("Error", "Terjadi kesalahan saat menyimpan hasil tes. Silakan coba lagi.");
+        showError("Error", "Terjadi kesalahan saat menyimpan hasil tes. Silakan coba lagi.");
       }
     };
     

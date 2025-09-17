@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Image, Pressable, Alert } from 'react-native';
+import { View, Text, Image, Pressable } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
@@ -13,6 +13,7 @@ import Step2FotoProfil from '../../components/auth/registerData/Step2FotoProfil'
 import Step3Selesai from '../../components/auth/registerData/Step3Selesai';
 import Step1DataDiri from '../../components/auth/registerData/Step1DataDiri';
 import { useAuth } from '../../contexts/AuthContext';
+import { useConfirmCard } from '../../contexts/ConfirmCardContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type RegisterStepRoute = {
@@ -26,6 +27,7 @@ export default function RegisterDataScreen() {
   const route = useRoute();
   const { role } = route.params as RegisterStepRoute;
   const { signUp, updateAvatar, loading, error, signIn, fetchCurrentUser } = useAuth();
+  const { showError, showWarning } = useConfirmCard();
 
   const [step, setStep] = useState(1);
 
@@ -77,7 +79,7 @@ export default function RegisterDataScreen() {
 
       if (Object.keys(errors).length > 0) {
         setValidationErrors(errors);
-        Alert.alert('Error', 'Mohon perbaiki kesalahan pada form');
+        showError('Error', 'Mohon perbaiki kesalahan pada form');
         return;
       }
 
@@ -173,14 +175,14 @@ export default function RegisterDataScreen() {
   const handleTakePhoto = async () => {
     const hasPermission = await requestCameraPermission();
     if (!hasPermission) {
-      Alert.alert('Izin diperlukan', 'Aplikasi membutuhkan izin kamera & akses media.');
+      showWarning('Izin diperlukan', 'Aplikasi membutuhkan izin kamera & akses media.');
       return;
     }
 
     launchCamera({ mediaType: 'photo', quality: 0.7 }, response => {
       if (response.didCancel) return;
       if (response.errorCode) {
-        Alert.alert('Error Kamera', response.errorMessage || response.errorCode);
+        showError('Error Kamera', response.errorMessage || response.errorCode);
         return;
       }
       if (response.assets && response.assets.length > 0) {
@@ -195,7 +197,7 @@ export default function RegisterDataScreen() {
   const handleChooseFromGallery = async () => {
     const ok = await requestGalleryPermission();
     if (!ok) {
-      Alert.alert('Izin diperlukan', 'Aplikasi membutuhkan akses media untuk memilih foto.');
+      showWarning('Izin diperlukan', 'Aplikasi membutuhkan akses media untuk memilih foto.');
       return;
     }
     launchImageLibrary(
@@ -203,7 +205,7 @@ export default function RegisterDataScreen() {
       (response: ImagePickerResponse) => {
         if (response.didCancel) return;
         if (response.errorCode) {
-          Alert.alert('Error Galeri', response.errorMessage || response.errorCode);
+          showError('Error Galeri', response.errorMessage || response.errorCode);
           return;
         }
         if (response.assets && response.assets.length > 0) {
@@ -257,7 +259,7 @@ export default function RegisterDataScreen() {
               }
               await handleNextStep();
             } catch (e: any) {
-              Alert.alert('Error', e?.message || 'Gagal menyimpan foto profil');
+              showError('Error', e?.message || 'Gagal menyimpan foto profil');
             }
           }}
         />

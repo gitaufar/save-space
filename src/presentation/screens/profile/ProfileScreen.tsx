@@ -1,15 +1,17 @@
 import React, { useMemo, useState } from "react";
-import { View, ScrollView, Text, Image, TouchableOpacity, Alert, Modal } from "react-native";
+import { View, ScrollView, Text, Image, TouchableOpacity, Modal } from "react-native";
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { useNavigation } from "@react-navigation/native";
 import { TextField } from "../../components/common/TextField";
 import { Button } from "../../components/common/Button";
 import { useAuth } from "../../contexts/AuthContext";
+import { useConfirmCard } from "../../contexts/ConfirmCardContext";
 import { launchImageLibrary, launchCamera } from 'react-native-image-picker';
 
 export default function ProfileScreen() {
     const navigation = useNavigation();
     const { user, loading, updateAvatar, updateProfile, changePassword } = useAuth();
+    const { showError, showSuccess, showWarning, showCustomConfirm } = useConfirmCard();
     const roleLabel = useMemo(() => user?.role ?? '-', [user?.role]);
     // State untuk form data (prefill dari backend)
     const [formData, setFormData] = useState({
@@ -34,42 +36,64 @@ export default function ProfileScreen() {
                 return;
             }
             await updateProfile(changes);
-            Alert.alert('Sukses', 'Profil berhasil diperbarui');
-            navigation.goBack();
+            showSuccess('Sukses', 'Profil berhasil diperbarui', () => navigation.goBack());
         } catch (e: any) {
-            Alert.alert('Error', e?.message || 'Gagal memperbarui profil');
+            showError('Error', e?.message || 'Gagal memperbarui profil');
         }
     };
 
     const handlePickAvatar = () => {
-        Alert.alert('Ubah Foto Profil', 'Pilih sumber gambar', [
-            { text: 'Kamera', onPress: () => launchCamera({ mediaType: 'photo' }, async (res) => {
-                const uri = res.assets?.[0]?.uri; if (!uri) return;
-                try { await updateAvatar(uri); } catch (e: any) { Alert.alert('Error', e?.message || 'Gagal mengubah foto'); }
-            }) },
-            { text: 'Galeri', onPress: () => launchImageLibrary({ mediaType: 'photo' }, async (res) => {
-                const uri = res.assets?.[0]?.uri; if (!uri) return;
-                try { await updateAvatar(uri); } catch (e: any) { Alert.alert('Error', e?.message || 'Gagal mengubah foto'); }
-            }) },
-            { text: 'Batal', style: 'cancel' },
-        ]);
+        // Create helper functions for camera and gallery
+        const handleCamera = () => {
+            launchCamera({ mediaType: 'photo' }, async (res) => {
+                const uri = res.assets?.[0]?.uri; 
+                if (!uri) return;
+                try { 
+                    await updateAvatar(uri); 
+                } catch (e: any) { 
+                    showError('Error', e?.message || 'Gagal mengubah foto'); 
+                }
+            });
+        };
+
+        const handleGallery = () => {
+            launchImageLibrary({ mediaType: 'photo' }, async (res) => {
+                const uri = res.assets?.[0]?.uri; 
+                if (!uri) return;
+                try { 
+                    await updateAvatar(uri); 
+                } catch (e: any) { 
+                    showError('Error', e?.message || 'Gagal mengubah foto'); 
+                }
+            });
+        };
+
+        // Use showCustomConfirm with "Kamera" and "Galeri" as button texts
+        showCustomConfirm(
+            'Ubah Foto Profil', 
+            'Pilih sumber gambar',
+            'Kamera',
+            'Galeri',
+            handleCamera,
+            handleGallery
+        );
     };
 
     const handleChangePassword = async () => {
         if (!pwd1 || pwd1.length < 6) {
-            Alert.alert('Error', 'Password minimal 6 karakter');
+            showError('Error', 'Password minimal 6 karakter');
             return;
         }
         if (pwd1 !== pwd2) {
-            Alert.alert('Error', 'Konfirmasi password tidak sama');
+            showError('Error', 'Konfirmasi password tidak sama');
             return;
         }
         try {
             await changePassword(pwd1);
             setPwd1(""); setPwd2(""); setPwdVisible(false);
-            Alert.alert('Sukses', 'Password berhasil diubah');
+            showSuccess('Sukses', 'Password berhasil diubah');
         } catch (e: any) {
-            Alert.alert('Error', e?.message || 'Gagal mengubah password');
+            showError('Error', e?.message || 'Gagal mengubah password');
         }
     };
 

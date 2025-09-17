@@ -13,6 +13,7 @@ import { useDataSource } from '../../contexts/DataSourceContext';
 import { GeminiRemoteDatasourceImpl } from '../../../data/datasources/GeminiRemoteDataSource';
 import { GeminiRepositoryImpl } from '../../../data/repositories/GeminiRepositoryImpl';
 import { GetResponseGeminiUseCase } from '../../../domain/usecases/ai/GetResponseGeminiUseCase';
+import { supabase } from '../../../core/utils/SupabaseClient';
 
 export default function DashboardHRD() {
   const navigation = useNavigation();
@@ -103,6 +104,23 @@ Tulis insight spesifik, ringkas, dan actionable untuk HRD.`;
     run();
     return () => { active = false; };
   }, [currentSpace?.id, currentSpace?.work_hours, (currentSpace as any)?.work_culture, (currentSpace as any)?.job_desc, employees.length, employeesWithMood]);
+
+  // Realtime (Supabase v1): update division insight when a new evaluation row arrives
+  useEffect(() => {
+    if (!currentSpace?.id) return;
+    const handler = async () => {
+      try {
+        const row = await dataSource.getLatestDivisionEvaluationToday(currentSpace.id);
+        if (row?.evaluation_text) setDivisionInsight(row.evaluation_text);
+      } catch {}
+    };
+    const sub: any = supabase
+      .from(`division_evaluasion:space_id=eq.${currentSpace.id}`)
+      .on('INSERT', handler)
+      .on('UPDATE', handler)
+      .subscribe();
+    return () => { try { supabase.removeSubscription(sub); } catch {} };
+  }, [currentSpace?.id, dataSource]);
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: '#f3f4f6' }}>

@@ -33,7 +33,6 @@ export default function AppNavigator() {
         const launchValue = await AsyncStorage.getItem("alreadyLaunched");
         
         if (launchValue == null) {
-          await AsyncStorage.setItem("alreadyLaunched", "true");
           setIsFirstLaunch(true);
         } else {
           setIsFirstLaunch(false);
@@ -54,6 +53,25 @@ export default function AppNavigator() {
 
     initializeApp();
   }, [fetchCurrentUser]);
+
+  // Listener untuk perubahan di AsyncStorage
+  useEffect(() => {
+    const checkFirstLaunch = async () => {
+      try {
+        const launchValue = await AsyncStorage.getItem("alreadyLaunched");
+        if (launchValue !== null) {
+          setIsFirstLaunch(false);
+        }
+      } catch (error) {
+        console.error("Error checking first launch:", error);
+      }
+    };
+
+    // Buat polling untuk mengecek perubahan
+    const interval = setInterval(checkFirstLaunch, 1000);
+    
+    return () => clearInterval(interval);
+  }, []);
 
   // Baca hint satu-kali setelah user berubah (mis. selesai register)
   useEffect(() => {

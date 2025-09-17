@@ -46,7 +46,7 @@ export default function AppNavigator() {
           setIsLoading(false);
         }, 2000);
       } catch (error) {
-        console.error("Error initializing app:", error);
+        // Silent error handling for demo
         setIsLoading(false);
       }
     };
@@ -63,7 +63,7 @@ export default function AppNavigator() {
           setIsFirstLaunch(false);
         }
       } catch (error) {
-        console.error("Error checking first launch:", error);
+        // Silent error handling for demo
       }
     };
 

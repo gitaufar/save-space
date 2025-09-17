@@ -14,7 +14,6 @@ export class GeminiRemoteDatasourceImpl implements GeminiRemoteDatasource {
       );
       return response.response.text();
     } catch (err) {
-      console.error("Gemini API error:", err);
       throw err;
     }
   }

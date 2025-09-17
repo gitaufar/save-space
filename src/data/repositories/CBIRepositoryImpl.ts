@@ -15,7 +15,6 @@ export class CBIRepositoryImpl implements CBIRepository {
       const result = await this.supabaseDataSource.createCBITestForSpace(spaceId);
       return result || [];
     } catch (error) {
-      console.error('Error creating CBI test for space:', error);
       throw error;
     }
   }
@@ -25,7 +24,6 @@ export class CBIRepositoryImpl implements CBIRepository {
       const result = await this.supabaseDataSource.getCBITestByEmployee(employeeId);
       return result;
     } catch (error) {
-      console.error('Error getting CBI test by employee ID:', error);
       return null; // Return null if not found instead of throwing
     }
   }
@@ -36,7 +34,6 @@ export class CBIRepositoryImpl implements CBIRepository {
       // For now, throwing an error as a placeholder
       throw new Error('updateCBITest not implemented yet');
     } catch (error) {
-      console.error('Error updating CBI test:', error);
       throw error;
     }
   }
@@ -46,7 +43,6 @@ export class CBIRepositoryImpl implements CBIRepository {
       const result = await this.supabaseDataSource.markCBITestAsFinished(id, clientBurnout, personalBurnout, workBurnout);
       return result;
     } catch (error) {
-      console.error('Error marking CBI test as finished:', error);
       throw error;
     }
   }

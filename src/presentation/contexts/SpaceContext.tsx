@@ -67,7 +67,6 @@ export const SpaceProvider: React.FC<{ children: React.ReactNode }> = ({
       const space = await dataSource.getSpaceById(user.space_id);
       setCurrentSpace(space);
     } catch (error) {
-      console.error('Error fetching current space:', error);
       setCurrentSpace(null);
     } finally {
       setSpaceLoading(false);

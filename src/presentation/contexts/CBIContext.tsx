@@ -55,7 +55,6 @@ export function CBIProvider({
       setCurrentCBITest(test);
       setHasPendingCBI(Boolean(test && test.finished === false));
     } catch (error) {
-      console.error('Error fetching CBI status:', error);
       setCurrentCBITest(null);
       setHasPendingCBI(false);
     } finally {

@@ -36,7 +36,6 @@ export const AIInsightProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       const latest = await dataSource.getLatestAIInsightByEmployeeToday(user.id);
       setCurrentInsight(latest?.insight_text ?? null);
     } catch (err) {
-      console.error('Error fetching AI insight:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch AI insight');
       setCurrentInsight(null);
     } finally {

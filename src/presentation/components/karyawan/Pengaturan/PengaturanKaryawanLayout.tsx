@@ -90,7 +90,7 @@ export const PengaturanKaryawanLayout = () => {
                     text="FAQ & panduan pengguna"
                     icon={<HelpCircle size={18} color="#22C55E" strokeWidth={2} />}
                     colorBgIcon="rgba(34,197,94,0.15)"
-                    onPress={() => console.log("Pusat Bantuan")}
+                    onPress={() => {}}
                     className="mb-2"
                 />
                 
@@ -99,7 +99,7 @@ export const PengaturanKaryawanLayout = () => {
                     text="Versi 1.0.0"
                     icon={<Info size={18} color="#64748B" strokeWidth={2} />}
                     colorBgIcon="rgba(100,116,139,0.15)"
-                    onPress={() => console.log("Tentang Aplikasi")}
+                    onPress={() => {}}
                 />
             </View>
             

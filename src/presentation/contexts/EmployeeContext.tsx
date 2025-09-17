@@ -66,7 +66,6 @@ export const EmployeeProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       
       setEmployees(mapped);
     } catch (err) {
-      console.error('Error fetching employees:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch employees');
       setEmployees([]);
     } finally {

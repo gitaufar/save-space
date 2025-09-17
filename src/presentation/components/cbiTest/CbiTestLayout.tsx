@@ -41,7 +41,6 @@ export const CBITestLayout = () => {
         ...prev,
         [questionIndex]: answerId
       }));
-      console.log(`Question ${questionIndex + 1}, Selected: ${answerId}`);
     };
     
     // Handler untuk tombol Selesai
@@ -60,11 +59,9 @@ export const CBITestLayout = () => {
 
         // Hitung skor CBI
         const scores = CBICalculation.calculateScores(answers);
-        console.log("CBI Scores:", scores);
 
         // Dapatkan interpretasi
         const interpretation = CBICalculation.getInterpretation(scores);
-        console.log("CBI Interpretation:", interpretation);
 
         // Get current user's CBI test first
         if (user?.id) {
@@ -79,8 +76,6 @@ export const CBITestLayout = () => {
               );
               return;
             }
-
-            console.log("Current CBI Test:", currentTest);
 
             // Mark the test as finished with the calculated scores
             await markCBITestAsFinished(
@@ -99,7 +94,6 @@ export const CBITestLayout = () => {
               () => navigation.goBack()
             );
           } catch (testError) {
-            console.error("Error processing CBI test:", testError);
             showError(
               "Error", 
               "Terjadi kesalahan saat memproses hasil tes. Pastikan Anda memiliki CBI test yang aktif."
@@ -109,7 +103,6 @@ export const CBITestLayout = () => {
           showError("Error", "User tidak ditemukan. Silakan login ulang.");
         }
       } catch (error) {
-        console.error("Error submitting CBI test:", error);
         showError("Error", "Terjadi kesalahan saat menyimpan hasil tes. Silakan coba lagi.");
       }
     };

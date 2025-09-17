@@ -13,12 +13,11 @@ export default function OnBoardingNavigation() {
       // Simpan bahwa onboarding telah ditampilkan
       await AsyncStorage.setItem("alreadyLaunched", "true");
       // Aplikasi akan otomatis refresh dan menampilkan AuthNavigator
-      console.log("Onboarding completed");
       
       // Reload halaman untuk trigger re-render AppNavigator
       // AppNavigator akan membaca ulang AsyncStorage dan menampilkan AuthNavigator
     } catch (error) {
-      console.error("Error saving onboarding completion:", error);
+      // Silent error handling for demo
     }
   };
 

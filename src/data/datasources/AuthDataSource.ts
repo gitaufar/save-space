@@ -31,9 +31,6 @@ export class AuthDataSource {
     space_id?: string,
   ) {
     const cleanEmail = this.sanitizeEmail(email);
-    console.log('[Auth] SignUp start');
-    console.log('[Auth] Raw email:', JSON.stringify(String(email ?? '')));
-    console.log('[Auth] Clean email:', JSON.stringify(cleanEmail));
 
     try {
       if (!this.isValidEmail(cleanEmail)) {
@@ -65,9 +62,8 @@ export class AuthDataSource {
       if (dbError) throw new Error(`Database insert failed: ${dbError.message}`);
 
       const appUser = insertedRows?.[0] ?? null;
-      return { authUser: user, appUser, session };
+      return newAppUser;
     } catch (error) {
-      console.error('[Auth] Signup failed:', error);
       throw error;
     }
   }

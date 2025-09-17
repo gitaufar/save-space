@@ -21,7 +21,7 @@ export enum MainBoxType {
 }
 
 // Definisikan tipe mood
-export type MoodType = 'stress' | 'marah' | 'lelah' | 'sedih' | 'netral' | 'tenang' | 'senang';
+export type MoodType = 'stress' | 'marah' | 'lelah' | 'sedih' | 'netral' | 'tenang' | 'bahagia';
 
 // Mapping warna dan SVG berdasarkan tipe mood
 const moodConfig = {
@@ -61,10 +61,10 @@ const moodConfig = {
     text: 'Tenang',
     svg: TenangSvg 
   },
-  senang: { 
+  bahagia: { 
     color: '#00BFA6', 
     bg: 'bg-[#00BFA6]', 
-    text: 'Senang',
+    text: 'Bahagia',
     svg: SenangSvg 
   },
 };

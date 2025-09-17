@@ -1,66 +1,208 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# 📱 Cipta Ruang - Employee Mood Management
 
-# Getting Started
+Aplikasi manajemen mood karyawan berbasis React Native untuk membantu HR dan Manager memantau kesejahteraan mental tim melalui mood tracking, AI insights, dan Copenhagen Burnout Inventory (CBI) test.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+## ✨ Fitur Utama
 
-## Step 1: Start Metro
+- 🎯 **Mood Tracking**: Karyawan dapat mencatat mood harian
+- 🤖 **AI Insights**: Evaluasi otomatis dengan Gemini AI untuk manager
+- 📊 **Dashboard Analytics**: Visualisasi mood distribution tim
+- 🔥 **CBI Test**: Tes burnout Copenhagen untuk evaluasi mental health
+- 👥 **Multi-role**: Support untuk Manager dan Karyawan
+- 📱 **Real-time**: Update mood dan evaluasi secara real-time
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+## 🚀 Quick Start
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+### 📋 Dokumentasi Instalasi
 
-```sh
-# Using npm
+- **[📖 Panduan Instalasi Lengkap](INSTALASI.md)** - Dokumentasi lengkap untuk semua platform
+- **[🪟 Setup Khusus Windows](SETUP-WINDOWS.md)** - Panduan detail untuk Windows
+
+### ⚡ Quick Installation
+
+```bash
+# Clone repository
+git clone https://github.com/gitaufar/cipta-ruang.git
+cd cipta-ruang
+
+# Install dependencies
+npm install
+
+# Setup environment variables
+cp .env.example .env
+# Edit .env dengan konfigurasi Anda
+
+# Verifikasi environment
+npx react-native doctor
+
+# Run aplikasi
+npx react-native start
+npx react-native run-android
+```
+
+## 🛠️ Tech Stack
+
+- **React Native** 0.81.x
+- **TypeScript** - Type safety
+- **Supabase** - Backend & Database
+- **Gemini AI** - AI-powered insights
+- **React Navigation** - Navigation system
+- **NativeWind** - Tailwind CSS for React Native
+- **Lucide React Native** - Icon system
+
+## 📱 Screenshots
+
+[Coming Soon - Tambahkan screenshot aplikasi]
+
+## 🔧 Development
+
+### Prerequisites
+
+- Node.js 18.x+
+- React Native CLI
+- Android Studio (untuk Android)
+- Xcode (untuk iOS - macOS only)
+
+### Environment Setup
+
+Buat file `.env` di root project:
+
+```env
+SUPABASE_URL=your-supabase-url
+SUPABASE_ANON_KEY=your-supabase-anon-key
+GEMINI_API_KEY=your-gemini-api-key
+```
+
+```
+
+### Development Commands
+
+```bash
+# Start Metro bundler
 npm start
 
-# OR using Yarn
-yarn start
-```
-
-## Step 2: Build and run your app
-
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
-
-### Android
-
-```sh
-# Using npm
+# Run on Android
 npm run android
 
-# OR using Yarn
-yarn android
-```
-
-### iOS
-
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
-
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
-
-```sh
-bundle install
-```
-
-Then, and every time you update your native dependencies, run:
-
-```sh
-bundle exec pod install
-```
-
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
-
-```sh
-# Using npm
+# Run on iOS (macOS only)
 npm run ios
 
-# OR using Yarn
-yarn ios
+# Build debug APK
+cd android && ./gradlew assembleDebug
+
+# Build release APK
+cd android && ./gradlew assembleRelease
+
+# Clean build
+cd android && ./gradlew clean
+
+# Reset Metro cache
+npm start -- --reset-cache
 ```
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
+## 🏗️ Project Structure
 
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
+```
+src/
+├── core/                 # Core utilities & constants
+├── data/                 # Data layer (repositories, datasources)
+├── domain/               # Business logic (entities, usecases)
+└── presentation/         # UI layer (screens, components, contexts)
+    ├── components/       # Reusable UI components
+    ├── contexts/         # React contexts
+    ├── navigation/       # Navigation setup
+    └── screens/          # Screen components
+```
+
+## 🧪 Testing
+
+```bash
+# Run unit tests
+npm test
+
+# Run tests with coverage
+npm run test:coverage
+
+# Run tests in watch mode
+npm run test:watch
+```
+
+## 📦 Build & Deploy
+
+### Debug Build
+```bash
+npx react-native build-android
+# APK: android/app/build/outputs/apk/debug/app-debug.apk
+```
+
+### Production Build
+```bash
+# Generate signing key (first time only)
+cd android/app
+keytool -genkeypair -v -storetype PKCS12 -keystore cipta-ruang-key.keystore -alias cipta-ruang -keyalg RSA -keysize 2048 -validity 10000
+
+# Build release APK
+cd android && ./gradlew assembleRelease
+# APK: android/app/build/outputs/apk/release/app-release.apk
+
+# Build AAB for Play Store
+cd android && ./gradlew bundleRelease
+# AAB: android/app/build/outputs/bundle/release/app-release.aab
+```
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+```bash
+# Metro bundler issues
+npm start -- --reset-cache
+rm -rf node_modules && npm install
+
+# Android build issues
+cd android && ./gradlew clean && ./gradlew assembleDebug
+
+# Environment issues
+npx react-native doctor
+```
+
+Untuk troubleshooting lebih detail, lihat [Panduan Instalasi](INSTALASI.md).
+
+## 📄 API Documentation
+
+### Mood Tracking
+- `POST /mood-responses` - Submit mood data
+- `GET /mood-responses` - Get mood history
+
+### CBI Test
+- `POST /cbi-tests` - Submit CBI test results
+- `GET /cbi-tests/:userId` - Get user CBI results
+
+### AI Evaluations
+- `POST /evaluations` - Generate AI evaluation
+- `GET /evaluations/:employeeId` - Get employee evaluations
+
+## 🤝 Contributing
+
+1. Fork repository
+2. Create feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
+5. Open Pull Request
+
+## 📞 Support
+
+- 📧 Email: [Your Email]
+- 🐛 Issues: [GitHub Issues](https://github.com/gitaufar/cipta-ruang/issues)
+- 📖 Wiki: [GitHub Wiki](https://github.com/gitaufar/cipta-ruang/wiki)
+
+## 📄 License
+
+MIT License - lihat file [LICENSE](LICENSE) untuk detail lengkap.
+
+---
+
+**Dibuat dengan ❤️ untuk membantu HR dan Manager mengelola kesejahteraan mental karyawan**
 
 ## Step 3: Modify your app
 

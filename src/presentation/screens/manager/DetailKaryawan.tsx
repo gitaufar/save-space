@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { View, Text, Image, ScrollView, TouchableOpacity } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { ArrowLeft } from "lucide-react-native"; // kalau sudah pakai lucide
@@ -7,8 +7,12 @@ import { AIDailyInsight } from "../../components/karyawan/Beranda/AIDailyInsight
 import { RiwayatMood } from "../../components/karyawan/Beranda/RiwayatMood";
 import { CBITestCard } from "../../components/manager/CBITestCard";
 import { useDataSource } from "../../contexts/DataSourceContext";
+import { useSpace } from "../../contexts/SpaceContext";
 import { CBICalculation } from "../../../core/utils/CBICalculation";
 import { supabase } from "../../../core/utils/SupabaseClient";
+import { GeminiRemoteDatasourceImpl } from "../../../data/datasources/GeminiRemoteDataSource";
+import { GeminiRepositoryImpl } from "../../../data/repositories/GeminiRepositoryImpl";
+import { GetResponseGeminiUseCase } from "../../../domain/usecases/ai/GetResponseGeminiUseCase";
 
 type Employee = {
   id: string;
@@ -24,6 +28,7 @@ export default function DetailKaryawanScreen() {
   const navigation = useNavigation();
   const route = useRoute();
   const { employee } = route.params as { employee?: Employee } || {};
+  const { currentSpace } = useSpace();
 
   // Data default jika tidak ada employee dari props
   const defaultEmployee: Employee = {
@@ -41,6 +46,12 @@ export default function DetailKaryawanScreen() {
   const [cbiSummary, setCbiSummary] = useState<number | null>(null);
   const [cbiLabel, setCbiLabel] = useState<string>("CBI Summary");
   const [employeeEvaluation, setEmployeeEvaluation] = useState<string>("");
+  const [evalLoading, setEvalLoading] = useState(false);
+
+  // Initialize Gemini AI
+  const geminiDs = useMemo(() => new GeminiRemoteDatasourceImpl(), []);
+  const geminiRepo = useMemo(() => new GeminiRepositoryImpl(geminiDs), [geminiDs]);
+  const gemini = useMemo(() => new GetResponseGeminiUseCase(geminiRepo), [geminiRepo]);
 
   useEffect(() => {
     let active = true;
@@ -73,21 +84,151 @@ export default function DetailKaryawanScreen() {
     return () => { active = false; };
   }, [currentEmployee.id, dataSource]);
 
-  // Load latest employee evaluation (today)
+  // Load/Generate employee evaluation dengan Gemini AI
   useEffect(() => {
     let active = true;
     async function loadEval() {
       try {
-        if (!currentEmployee.id) { if(active) setEmployeeEvaluation(""); return; }
-        const ev = await dataSource.getLatestEvaluationByEmployeeToday(currentEmployee.id);
-        if (active) setEmployeeEvaluation(ev?.evaluation_text || "");
-      } catch {
-        if (active) setEmployeeEvaluation("");
+        // Validasi employee ID lebih ketat
+        if (!currentEmployee?.id || currentEmployee.id === "") { 
+          console.log('No valid employee ID, skipping evaluation');
+          if(active) setEmployeeEvaluation(""); 
+          return; 
+        }
+
+        console.log('Starting loadEval for employee:', currentEmployee.id);
+
+        // Cek evaluasi yang sudah ada hari ini
+        try {
+          const existingEval = await dataSource.getLatestEvaluationByEmployeeToday(currentEmployee.id);
+          if (existingEval?.evaluation_text) {
+            console.log('Found existing evaluation, using it');
+            if (active) setEmployeeEvaluation(existingEval.evaluation_text);
+            return;
+          }
+          console.log('No existing evaluation found, will generate new one');
+        } catch (evalError) {
+          console.log('Error checking existing evaluation:', evalError);
+          // Continue to generate new evaluation
+        }
+
+        // Jika belum ada, generate dengan Gemini AI
+        if (active) setEvalLoading(true);
+        
+        // Ambil data mood history karyawan (7 hari terakhir)
+        let moodHistory = [];
+        try {
+          moodHistory = await dataSource.getMoodResponsesLast7Days(currentEmployee.id);
+          console.log('Mood history loaded:', moodHistory?.length || 0, 'records');
+        } catch (moodError) {
+          console.log('Error loading mood history:', moodError);
+          // Continue with empty mood history
+        }
+        
+        // Ambil data CBI jika ada
+        let cbiData = null;
+        let cbiScore = null;
+        let cbiLevel = null;
+        try {
+          cbiData = await dataSource.getLatestFinishedCBITestByEmployee(currentEmployee.id);
+          cbiScore = cbiData?.summary || null;
+          cbiLevel = cbiScore ? CBICalculation.getInterpretation({ 
+            personalBurnout: 0, 
+            workBurnout: 0, 
+            clientBurnout: 0, 
+            summary: cbiScore 
+          }).overallLevel : null;
+          console.log('CBI data loaded:', { cbiScore, cbiLevel });
+        } catch (cbiError) {
+          console.log('Error loading CBI data:', cbiError);
+          // Continue without CBI data
+        }
+
+        // Data space/divisi
+        const spaceName = currentSpace?.name || 'Divisi';
+        const workHours = currentSpace?.work_hours || '';
+        const workCulture = (currentSpace as any)?.work_culture || '';
+        
+        // Siapkan data mood history
+        const moodHistoryText = moodHistory && moodHistory.length > 0 
+          ? moodHistory.map((m: any) => `${m.created_at?.split('T')[0]}: ${m.mood}`).join(', ')
+          : 'Belum ada riwayat mood';
+
+        console.log('Prepared data for AI:', {
+          employee: currentEmployee.name,
+          mood: moodType,
+          historyCount: moodHistory?.length || 0,
+          hasCBI: !!cbiLevel
+        });
+
+        // Generate prompt untuk manager
+        const prompt = `Anda adalah AI Assistant untuk Manager HR. Berikan evaluasi dan rekomendasi aksi untuk karyawan berikut:
+
+INFORMASI KARYAWAN:
+- Nama: ${currentEmployee.name}
+- Departemen: ${currentEmployee.department}
+- Mood hari ini: ${moodType}
+- Riwayat mood 7 hari: ${moodHistoryText}
+${cbiLevel ? `- Tingkat CBI: ${cbiLevel} (Skor: ${cbiScore})` : '- Belum ada data CBI'}
+
+INFORMASI DIVISI:
+- Divisi: ${spaceName}
+- Jam kerja: ${workHours}
+- Budaya kerja: ${workCulture}
+
+TUGAS:
+Sebagai manager, berikan evaluasi singkat (maksimal 4 kalimat) yang berisi:
+1. Analisis kondisi karyawan saat ini
+2. Rekomendasi aksi konkret yang harus manager lakukan
+3. Langkah follow-up yang diperlukan
+
+Fokus pada perspektif manager - apa yang harus DILAKUKAN untuk membantu karyawan ini.`;
+
+        let evaluationText = '';
+        try {
+          console.log('Calling Gemini AI...');
+          const response = await gemini.execute(prompt);
+          evaluationText = response?.text?.trim() || '';
+          console.log('Gemini response received:', evaluationText ? 'Success' : 'Empty response');
+        } catch (error) {
+          console.log('Gemini AI error:', error);
+          // Will use fallback below
+        }
+
+        // Fallback jika Gemini gagal
+        if (!evaluationText) {
+          evaluationText = `${currentEmployee.name} menunjukkan mood ${moodType} hari ini. Sebagai manager, disarankan untuk: 1) Melakukan check-in personal untuk memahami kondisi karyawan, 2) Memberikan dukungan atau penyesuaian beban kerja jika diperlukan, 3) Follow-up dalam 2-3 hari untuk memantau perkembangan.`;
+          console.log('Using fallback evaluation text');
+        }
+
+        // Simpan evaluasi ke database
+        if (evaluationText && currentEmployee.id) {
+          try {
+            await dataSource.createEvaluation({
+              employee_id: currentEmployee.id,
+              evaluation_text: evaluationText
+            });
+            console.log('Evaluation saved to database');
+          } catch (error) {
+            console.log('Error saving evaluation:', error);
+            // Continue anyway, we still have the text
+          }
+        }
+
+        if (active) setEmployeeEvaluation(evaluationText);
+      } catch (error) {
+        console.error('Error in loadEval:', error);
+        if (active) {
+          const fallbackText = `${currentEmployee.name} memerlukan perhatian manager terkait mood ${moodType}. Lakukan pendekatan personal untuk memberikan dukungan yang tepat.`;
+          setEmployeeEvaluation(fallbackText);
+        }
+      } finally {
+        if (active) setEvalLoading(false);
       }
     }
     loadEval();
     return () => { active = false; };
-  }, [currentEmployee.id, dataSource]);
+  }, [currentEmployee.id, moodType, currentSpace?.id, dataSource, gemini]); // Simplified dependencies
 
   // Realtime (Supabase v1): listen for evaluations for this employee
   useEffect(() => {
@@ -139,7 +280,11 @@ export default function DetailKaryawanScreen() {
 
         {/* AI Daily Insight */}
         <AIDailyInsight
-          insightText={employeeEvaluation || `${currentEmployee.name} menunjukkan mood ${moodType} hari ini. Disarankan untuk melakukan follow-up dan memberikan dukungan yang tepat.`}
+          insightText={
+            evalLoading 
+              ? "Menganalisis kondisi karyawan dan menyiapkan rekomendasi untuk manager..." 
+              : employeeEvaluation || `${currentEmployee.name} menunjukkan mood ${moodType} hari ini. Disarankan untuk melakukan follow-up dan memberikan dukungan yang tepat.`
+          }
         />
 
         {/* Riwayat Mood untuk karyawan ini */}

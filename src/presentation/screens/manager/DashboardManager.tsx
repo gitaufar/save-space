@@ -33,7 +33,13 @@ export default function DashboardHRD() {
   const spaceLabel = currentSpace?.name || 'Ruang Kerja';
 
   const [todayMoods, setTodayMoods] = useState<Record<string, any>>({});
-  const noMoodData = Object.keys(todayMoods).length === 0;
+  
+  // Hitung karyawan yang sudah mengisi mood hari ini
+  const employeesWithMoodToday = useMemo(() => {
+    return employees.filter(emp => todayMoods[emp.id]?.mood);
+  }, [employees, todayMoods]);
+  
+  const noMoodData = employeesWithMoodToday.length === 0;
 
   // Fetch today's moods for employees in this space
   useEffect(() => {
@@ -197,7 +203,9 @@ Tulis insight spesifik, ringkas, dan actionable untuk HRD. Sertakan catatan tent
         >
           <Text style={{ fontWeight: '600', fontSize: 16 }}>Mood Karyawan</Text>
           {!noMoodData && (
-            <TouchableOpacity onPress={() => (navigation as any).navigate('ListKaryawanScreen', { employees: employees })}>
+            <TouchableOpacity onPress={() => {
+              (navigation as any).navigate('ListKaryawanScreen', { employees: employeesWithMoodToday });
+            }}>
               <Text style={{ color: '#00BFA6', fontSize: 14 }}>
                 Lihat Semua
               </Text>
@@ -227,8 +235,8 @@ Tulis insight spesifik, ringkas, dan actionable untuk HRD. Sertakan catatan tent
               </Text>
             </View>
           ) : (
-            // === Tampilan daftar karyawan kalau ada data mood ===
-            employees.map((emp, idx) => {
+            // === Tampilan daftar karyawan yang sudah mengisi mood ===
+            employeesWithMoodToday.map((emp, idx) => {
               const moodResponse = todayMoods[emp.id];
               const currentMood = moodResponse?.mood || 'Netral';
               

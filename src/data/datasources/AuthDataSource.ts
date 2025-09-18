@@ -62,8 +62,9 @@ export class AuthDataSource {
       if (dbError) throw new Error(`Database insert failed: ${dbError.message}`);
 
       const appUser = insertedRows?.[0] ?? null;
-      return newAppUser;
+      return { authUser: user, appUser, session };  
     } catch (error) {
+      console.error('[Auth] SignUp Failed:', error);
       throw error;
     }
   }

@@ -1,5 +1,6 @@
 import React from 'react';
-import { Pressable, View } from 'react-native';
+import { Pressable, View, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import  Header from '../../components/auth/Header';
 import Logo from '../../../assets/register/register_illustration.svg';
@@ -25,30 +26,34 @@ export default function RegisterScreen() {
       start={{ x: 0, y: 1 }}
       end={{ x: 0, y: 0.2 }}
     >
-      <View className="flex-1 flex flex-col pt-24 px-5 items-center">
-        <Header title="Save Space" desc="Pilih peran anda untuk melanjutkan" />
-        <Logo width={300} height={300} />
-        <View className="flex flex-col gap-4">
-          <Pressable onPress={() => handleRegister('Manager')}>
-            <RoleCard
-              title="Daftar sebagai Manager"
-              bgIconColor="bg-primary"
-              icon={<Icon name="person" size={24} color="white" />}
-              desc="Kelola karyawan dan analisis burnout"
-              onPress={() => handleRegister('Manager')}
-            />
-          </Pressable>
-          <Pressable onPress={() => handleRegister('Karyawan')}>
-            <RoleCard
-              title="Daftar sebagai Karyawan"
-              bgIconColor="bg-[#FFB74D]"
-              icon={<Icon name="person" size={24} color="white" />}
-              desc="Pantau kesehatan mental anda"
-              onPress={() => handleRegister('Karyawan')}
-            />
-          </Pressable>
-        </View>
-      </View>
+      <SafeAreaView className="flex-1">
+        <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+          <View className="flex flex-col pt-12 px-5 items-center">
+            <Header title="Save Space" desc="Pilih peran anda untuk melanjutkan" />
+            <Logo width={300} height={300} />
+            <View className="flex flex-col gap-4">
+              <Pressable onPress={() => handleRegister('Manager')}>
+                <RoleCard
+                  title="Daftar sebagai Manager"
+                  bgIconColor="bg-primary"
+                  icon={<Icon name="person" size={24} color="white" />}
+                  desc="Kelola karyawan dan analisis burnout"
+                  onPress={() => handleRegister('Manager')}
+                />
+              </Pressable>
+              <Pressable onPress={() => handleRegister('Karyawan')}>
+                <RoleCard
+                  title="Daftar sebagai Karyawan"
+                  bgIconColor="bg-[#FFB74D]"
+                  icon={<Icon name="person" size={24} color="white" />}
+                  desc="Pantau kesehatan mental anda"
+                  onPress={() => handleRegister('Karyawan')}
+                />
+              </Pressable>
+            </View>
+          </View>
+        </ScrollView>
+      </SafeAreaView>
     </LinearGradient>
   );
 }

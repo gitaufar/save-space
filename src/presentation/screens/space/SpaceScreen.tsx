@@ -1,5 +1,6 @@
-import { Text, View, TouchableOpacity } from 'react-native';
+import { Text, View, TouchableOpacity, ScrollView } from 'react-native';
 import React from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import Header from '../../components/auth/Header';
 import SpaceMenu from '../../../assets/space/space_menu.svg';
@@ -23,7 +24,9 @@ export default function SpaceScreen() {
       start={{ x: 0, y: 1 }}
       end={{ x: 0, y: 0.2 }}
     >
-      <View className="flex-1 px-5 pt-32">
+      <SafeAreaView className="flex-1">
+        <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+          <View className="flex-1 px-5 pt-12">
         <View className="w-full items-center mb-8">
           <Header
             title="Save Space"
@@ -80,7 +83,9 @@ export default function SpaceScreen() {
             </Text>
           </TouchableOpacity>
         </View>
-      </View>
+          </View>
+        </ScrollView>
+      </SafeAreaView>
     </LinearGradient>
   );
 }

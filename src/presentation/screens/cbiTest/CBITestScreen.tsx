@@ -1,5 +1,6 @@
 import React from "react";
 import { ScrollView, View, Text, TouchableOpacity } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { ArrowLeft } from "lucide-react-native";
 import { Tips } from '../../components/common/tips';
@@ -9,8 +10,8 @@ import { CBITestLayout } from "../../components/cbiTest/CbiTestLayout";
 export default function CBITestScreen() {
     const navigation = useNavigation();
     return (
-        <View className="flex-1 bg-[#FAFAFA]">
-              <View className="relative flex items-center h-32 px-5 pt-4 bg-primary">
+        <SafeAreaView className="flex-1 bg-[#FAFAFA]">
+              <View className="relative flex items-center h-20 px-5 pt-4 bg-primary">
                 {/* Back Button */}
                 <TouchableOpacity 
                   onPress={() => navigation.goBack()}
@@ -27,6 +28,6 @@ export default function CBITestScreen() {
               >
                 <CBITestLayout />
               </ScrollView>
-            </View>
+            </SafeAreaView>
     )
 }

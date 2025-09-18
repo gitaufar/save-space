@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, TextInput, ScrollView, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { Button } from '../../components/common/Button';
@@ -192,9 +193,9 @@ Berikan observasi singkat yang suportif dan 1-2 saran praktis.`;
   const maxCharacters = 500;
 
   return (
-    <View className="flex-1 bg-[#FAFAFA]">
+    <SafeAreaView className="flex-1 bg-[#FAFAFA]">
       {/* Header */}
-      <View className="flex-row items-center justify-between h-32 px-5 pt-4 bg-primary">
+      <View className="flex-row items-center justify-between h-20 px-5 pt-4 bg-primary">
         <TouchableOpacity 
           className="absolute left-5 top-12 z-10 p-2"
           onPress={handleGoBack}
@@ -274,6 +275,6 @@ Berikan observasi singkat yang suportif dan 1-2 saran praktis.`;
           />
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }

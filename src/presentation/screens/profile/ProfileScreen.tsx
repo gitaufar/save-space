@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { View, ScrollView, Text, Image, TouchableOpacity, Modal } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { useNavigation } from "@react-navigation/native";
 import { TextField } from "../../components/common/TextField";
@@ -98,9 +99,10 @@ export default function ProfileScreen() {
     };
 
     return(
-        <ScrollView className="flex-1 bg-[#F9FAFB]">
+        <SafeAreaView className="flex-1 bg-[#F9FAFB]">
+            <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
             {/* Header */}
-            <View className="w-full bg-primary pt-12 pb-4 px-5 flex-row items-center">
+            <View className="w-full bg-primary pt-4 pb-4 px-5 flex-row items-center">
                 <TouchableOpacity
                     onPress={handleGoBack}
                     className="mr-4 mb-4"
@@ -219,5 +221,6 @@ export default function ProfileScreen() {
               </View>
             </Modal>
         </ScrollView>
+        </SafeAreaView>
     );
 }

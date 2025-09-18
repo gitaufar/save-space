@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import EmployeeMoodCard from '../../components/manager/EmployeeMoodCard';
 import { ArrowLeft } from 'lucide-react-native'; // kalau pakai lucide-react-native
@@ -37,7 +38,7 @@ export default function ListKaryawanScreen() {
   }, [route.params, contextEmployees]);
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#fff' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
       {/* Header */}
       <View
         style={{
@@ -72,6 +73,6 @@ export default function ListKaryawanScreen() {
           />
         ))}
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }

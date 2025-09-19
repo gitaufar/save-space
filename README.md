@@ -1,4 +1,4 @@
-# 📱 Cipta Ruang - Employee Mood Management
+# 📱 Save Space - Employee Mood Management
 
 Aplikasi manajemen mood karyawan berbasis React Native untuk membantu HR dan Manager memantau kesejahteraan mental tim melalui mood tracking, AI insights, dan Copenhagen Burnout Inventory (CBI) test.
 

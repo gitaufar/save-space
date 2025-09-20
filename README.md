@@ -170,17 +170,8 @@ Untuk troubleshooting lebih detail, lihat [Panduan Instalasi](INSTALASI.md).
 
 ## 📄 API Documentation
 
-### Mood Tracking
-- `POST /mood-responses` - Submit mood data
-- `GET /mood-responses` - Get mood history
-
-### CBI Test
-- `POST /cbi-tests` - Submit CBI test results
-- `GET /cbi-tests/:userId` - Get user CBI results
-
-### AI Evaluations
-- `POST /evaluations` - Generate AI evaluation
-- `GET /evaluations/:employeeId` - Get employee evaluations
+### Mood Prediction
+- `POST /predict_mood` - Submit text and get mood data response
 
 ## 🤝 Contributing
 
